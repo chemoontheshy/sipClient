@@ -2,8 +2,35 @@
 #include <thread>
 using namespace vsnc::sip;
 
+
+#include "eXosip2/eXosip.h"
+#include "osip2/osip_mt.h"
+#include <iostream>
+#include <winsock2.h>
+#include <windows.h>
+
+#include <iostream>
+#include <string>
+
+const char* srcCall = "sip:client@127.0.0.1:5061";
+const char* dstCall = "sip:server@127.0.0.1";
+
 int main()
 {
+    auto excontext = eXosip_malloc();
+	if (eXosip_init(excontext) < 0)
+	{
+		std::cout << "SIP初始化失败" << std::endl;
+		eXosip_quit(excontext);
+		return -1;
+	}
+
+	if (eXosip_listen_addr(excontext, IPPROTO_UDP, nullptr, 5061, AF_INET, 0) != OSIP_SUCCESS)
+	{
+		std::cout << "SIP监听失败" << std::endl;
+		eXosip_quit(excontext);
+		return -1;
+	}
     std::cout << "r REGISTER        向服务器注册"     << std::endl;
     std::cout << "u UPDATE          更新注册"         << std::endl;
     std::cout << "c CANCEL REGISTER 取消注册"         << std::endl;
@@ -34,6 +61,29 @@ int main()
         {
             std::cout << "Reister" << std::endl;
             sipClient.Reister();
+                    break;
+                }
+                switch (je->type) //可能会到来的事件
+                {
+
+                case EXOSIP_REGISTRATION_FAILURE:
+                {
+
+                    std::cout << "fail: status_code" << je->response->status_code << std::endl;;
+                    waitFlag = false;
+                    break;//注册失败
+                }
+                case EXOSIP_REGISTRATION_SUCCESS:
+                {
+                    std::cout << "success: status_code" << je->request->status_code << std::endl;;
+                    break;//注册成功
+                }
+                default://收到其他应答
+                    std::cout << "other response" << std::endl;
+                    break;
+                }
+                eXosip_event_free(je);
+            }
             break;
         }
         case 'u':
@@ -68,12 +118,17 @@ int main()
         }
         case 'q':
         {
+            eXosip_quit(excontext);
             std::cout << "Exit the setup" << std::endl;
             flag = false;
             break;
         }
         case 'm':
         {
+           //传输MESSAGE方法，也就是即时消息，和INFO方法相比，我认为主要区别是：
+           //MESSAGE不用建立连接，直接传输信息，而INFO消息必须在建立INVITE的基础上传输
+            std::cout << "the method : MESSAGE" << std::endl;
+            eXosip_message_build_request(excontext, &message, "MESSAGE", dstCall, srcCall, nullptr);
             std::string msg = " This is a sip message(Method:MESSAGE)";
             sipClient.Message(msg);
             break;
