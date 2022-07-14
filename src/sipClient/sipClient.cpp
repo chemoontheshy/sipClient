@@ -58,6 +58,7 @@ bool vsnc::sip::SIPClient::Reister() noexcept
 	m_iRegisterID = eXosip_register_build_initial_register(m_pExcontext,
 		m_pFrom->GetSipHeader().c_str(), m_pTo->GetSipHeader().c_str(),
 		nullptr, m_pFrom->GetExpires(), &reg);
+
 	if (m_iRegisterID < 0)
 	{
 		std::cout << "eXosip_register_build_initial_register failed" << std::endl;
@@ -65,14 +66,50 @@ bool vsnc::sip::SIPClient::Reister() noexcept
 		return false;
 	}
 	//增加账号验证信息
-	eXosip_add_authentication_info(m_pExcontext,
-		m_pSIPAuth->Username.c_str(),
-		m_pSIPAuth->Username.c_str(),
-		m_pSIPAuth->Response.c_str(),
-		m_pSIPAuth->Algorithm.c_str(),
-		m_pSIPAuth->DigestRealm.c_str());
+	//auto ret = eXosip_add_authentication_info(m_pExcontext,
+	//	m_pSIPAuth->Username.c_str(),
+	//	m_pSIPAuth->Username.c_str(),
+	//	m_pSIPAuth->Response.c_str(),
+	//	m_pSIPAuth->Algorithm.c_str(),
+	//	m_pSIPAuth->DigestRealm.c_str());
+	eXosip_add_authentication_info(m_pExcontext, "hskj", "hskj", "12456", "MD5", nullptr);
 	eXosip_register_send_register(m_pExcontext, m_iRegisterID, reg);
+
 	eXosip_unlock(m_pExcontext);
+	bool waitFlag = true;
+	while (waitFlag)
+	{
+		auto je = eXosip_event_wait(m_pExcontext, 0, 1200);
+		//一般处理401/407采用库默认处理
+		eXosip_lock(m_pExcontext);
+		eXosip_automatic_action(m_pExcontext);
+		eXosip_unlock(m_pExcontext);
+		if (!je)
+		{
+			std::cout << "No response or the time is over" << std::endl;
+			break;
+		}
+		switch (je->type) //可能会到来的事件
+		{
+
+		case EXOSIP_REGISTRATION_FAILURE:
+		{
+
+			std::cout << "fail: status_code" << je->response->status_code << std::endl;;
+			waitFlag = false;
+			break;//注册失败
+		}
+		case EXOSIP_REGISTRATION_SUCCESS:
+		{
+			std::cout << "success: status_code" << je->request->status_code << std::endl;;
+			break;//注册成功
+		}
+		default://收到其他应答
+			std::cout << "other response" << std::endl;
+			break;
+		}
+		eXosip_event_free(je);
+	}
 	return true;
 }
 
@@ -190,9 +227,6 @@ bool vsnc::sip::SIPClient::Subscription(const SubscriptionParam subParam) noexce
 }
 
 
-
-
-
 void vsnc::sip::SIPClient::serverHander()
 {
 	size_t num = 0;
@@ -200,27 +234,27 @@ void vsnc::sip::SIPClient::serverHander()
 	{
 		auto je = eXosip_event_wait(m_pExcontext, 0, 1000);
 		//一般处理401/407采用库默认处理
-		eXosip_lock(m_pExcontext);
+		/*eXosip_lock(m_pExcontext);
 		eXosip_automatic_action(m_pExcontext);
-		eXosip_unlock(m_pExcontext);
+		eXosip_unlock(m_pExcontext);*/
+
 		if (!je)
 		{
 			//std::cout << "No response or the time is over num=" << num++ << std::endl;
 			continue;
 		}
-
+		
 		switch (je->type)
 		{
 
 		case EXOSIP_REGISTRATION_FAILURE:
 		{
-
 			std::cout << "fail: status_code" << je->response->status_code << std::endl;
 			break;//注册失败
 		}
 		case EXOSIP_REGISTRATION_SUCCESS:
 		{
-			std::cout << "success: status_code" << je->request->status_code << std::endl;;
+			std::cout << "success: status_code" << je->request->status_code << std::endl;
 			break;//注册成功
 		}
 		case EXOSIP_CALL_RINGING:

@@ -1,5 +1,3 @@
-
-
 #include "eXosip2/eXosip.h"
 #include "osip2/osip_mt.h"
 #include <iostream>

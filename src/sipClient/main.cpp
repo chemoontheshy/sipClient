@@ -60,29 +60,9 @@ int main()
         case 'r':
         {
             std::cout << "Reister" << std::endl;
-            sipClient.Reister();
-                    break;
-                }
-                switch (je->type) //可能会到来的事件
-                {
-
-                case EXOSIP_REGISTRATION_FAILURE:
-                {
-
-                    std::cout << "fail: status_code" << je->response->status_code << std::endl;;
-                    waitFlag = false;
-                    break;//注册失败
-                }
-                case EXOSIP_REGISTRATION_SUCCESS:
-                {
-                    std::cout << "success: status_code" << je->request->status_code << std::endl;;
-                    break;//注册成功
-                }
-                default://收到其他应答
-                    std::cout << "other response" << std::endl;
-                    break;
-                }
-                eXosip_event_free(je);
+            if (!sipClient.Reister())
+            {
+                std::cout << "error" << std::endl;
             }
             break;
         }
@@ -128,7 +108,6 @@ int main()
            //传输MESSAGE方法，也就是即时消息，和INFO方法相比，我认为主要区别是：
            //MESSAGE不用建立连接，直接传输信息，而INFO消息必须在建立INVITE的基础上传输
             std::cout << "the method : MESSAGE" << std::endl;
-            eXosip_message_build_request(excontext, &message, "MESSAGE", dstCall, srcCall, nullptr);
             std::string msg = " This is a sip message(Method:MESSAGE)";
             sipClient.Message(msg);
             break;
