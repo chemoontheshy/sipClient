@@ -11,26 +11,9 @@ using namespace vsnc::sip;
 
 #include <iostream>
 #include <string>
-
-const char* srcCall = "sip:client@127.0.0.1:5061";
-const char* dstCall = "sip:server@127.0.0.1";
-
 int main()
 {
-    auto excontext = eXosip_malloc();
-	if (eXosip_init(excontext) < 0)
-	{
-		std::cout << "SIP³õÊ¼»¯Ê§°Ü" << std::endl;
-		eXosip_quit(excontext);
-		return -1;
-	}
-
-	if (eXosip_listen_addr(excontext, IPPROTO_UDP, nullptr, 5061, AF_INET, 0) != OSIP_SUCCESS)
-	{
-		std::cout << "SIP¼àÌýÊ§°Ü" << std::endl;
-		eXosip_quit(excontext);
-		return -1;
-	}
+  
     std::cout << "r REGISTER        Ïò·þÎñÆ÷×¢²á"     << std::endl;
     std::cout << "u UPDATE          ¸üÐÂ×¢²á"         << std::endl;
     std::cout << "c CANCEL REGISTER È¡Ïû×¢²á"         << std::endl;
@@ -98,7 +81,7 @@ int main()
         }
         case 'q':
         {
-            eXosip_quit(excontext);
+            sipClient.Close();
             std::cout << "Exit the setup" << std::endl;
             flag = false;
             break;

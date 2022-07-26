@@ -76,40 +76,6 @@ bool vsnc::sip::SIPClient::Reister() noexcept
 	eXosip_register_send_register(m_pExcontext, m_iRegisterID, reg);
 
 	eXosip_unlock(m_pExcontext);
-	bool waitFlag = true;
-	while (waitFlag)
-	{
-		auto je = eXosip_event_wait(m_pExcontext, 0, 1200);
-		//一般处理401/407采用库默认处理
-		eXosip_lock(m_pExcontext);
-		eXosip_automatic_action(m_pExcontext);
-		eXosip_unlock(m_pExcontext);
-		if (!je)
-		{
-			std::cout << "No response or the time is over" << std::endl;
-			break;
-		}
-		switch (je->type) //可能会到来的事件
-		{
-
-		case EXOSIP_REGISTRATION_FAILURE:
-		{
-
-			std::cout << "fail: status_code" << je->response->status_code << std::endl;;
-			waitFlag = false;
-			break;//注册失败
-		}
-		case EXOSIP_REGISTRATION_SUCCESS:
-		{
-			std::cout << "success: status_code" << je->request->status_code << std::endl;;
-			break;//注册成功
-		}
-		default://收到其他应答
-			std::cout << "other response" << std::endl;
-			break;
-		}
-		eXosip_event_free(je);
-	}
 	return true;
 }
 
@@ -223,7 +189,7 @@ bool vsnc::sip::SIPClient::Subscription(const SubscriptionParam subParam) noexce
 	osip_message_set_body(subscribe, subParam.Context.c_str(), subParam.Context.length());
 	osip_message_set_content_type(subscribe, "application/xml");
 	eXosip_subscription_send_initial_request(m_pExcontext, subscribe);
-	return false;
+	return true;
 }
 
 
@@ -234,9 +200,9 @@ void vsnc::sip::SIPClient::serverHander()
 	{
 		auto je = eXosip_event_wait(m_pExcontext, 0, 1000);
 		//一般处理401/407采用库默认处理
-		/*eXosip_lock(m_pExcontext);
+		eXosip_lock(m_pExcontext);
 		eXosip_automatic_action(m_pExcontext);
-		eXosip_unlock(m_pExcontext);*/
+		eXosip_unlock(m_pExcontext);
 
 		if (!je)
 		{
