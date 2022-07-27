@@ -66,13 +66,13 @@ bool vsnc::sip::SIPClient::Reister() noexcept
 		return false;
 	}
 	//增加账号验证信息
-	//auto ret = eXosip_add_authentication_info(m_pExcontext,
-	//	m_pSIPAuth->Username.c_str(),
-	//	m_pSIPAuth->Username.c_str(),
-	//	m_pSIPAuth->Response.c_str(),
-	//	m_pSIPAuth->Algorithm.c_str(),
-	//	m_pSIPAuth->DigestRealm.c_str());
-	eXosip_add_authentication_info(m_pExcontext, "hskj", "hskj", "12456", "MD5", nullptr);
+	auto ret = eXosip_add_authentication_info(m_pExcontext,
+		m_pSIPAuth->Username.c_str(),
+		m_pSIPAuth->Username.c_str(),
+		m_pSIPAuth->Response.c_str(),
+		m_pSIPAuth->Algorithm.c_str(),
+		m_pSIPAuth->DigestRealm.c_str());
+	//eXosip_add_authentication_info(m_pExcontext, "hskj", "hskj", "12456", "MD5", nullptr);
 	eXosip_register_send_register(m_pExcontext, m_iRegisterID, reg);
 
 	eXosip_unlock(m_pExcontext);
@@ -212,17 +212,55 @@ void vsnc::sip::SIPClient::serverHander()
 		
 		switch (je->type)
 		{
-
-		case EXOSIP_REGISTRATION_FAILURE:
-		{
-			std::cout << "fail: status_code" << je->response->status_code << std::endl;
-			break;//注册失败
-		}
 		case EXOSIP_REGISTRATION_SUCCESS:
 		{
 			std::cout << "success: status_code" << je->request->status_code << std::endl;
 			break;//注册成功
 		}
+		case EXOSIP_REGISTRATION_FAILURE:
+		{
+			std::cout << "fail: status_code" << je->response->status_code << std::endl;
+			break;//注册失败
+		}
+		case EXOSIP_MESSAGE_NEW:
+		{
+			//消息
+			if (MSG_IS_MESSAGE(je->request))
+			{
+				// 打印接收到信息
+				{
+					osip_body_t* body;
+					osip_message_get_body(je->request, 0, &body);
+					std::cout << "I get the msg is : " << body->body << std::endl;
+				}
+				//按照规则，需要回复OK信息
+				osip_message_t* answer;
+				eXosip_message_build_answer(m_pExcontext, je->tid, 200, &answer);
+				eXosip_message_send_answer(m_pExcontext, je->tid, 200, answer);
+			}
+			else if (MSG_IS_NOTIFY(je->request))
+			{
+				std::cout << "NOTIFY" << std::endl;
+				// 打印接收到信息
+				{
+					osip_body_t* body;
+					osip_message_get_body(je->request, 0, &body);
+					std::cout << "I get the msg is : " << body->body << std::endl;
+				}
+				osip_message_t* notify = nullptr;
+				eXosip_message_build_answer(m_pExcontext, je->tid, 200, &notify);
+				eXosip_message_send_answer(m_pExcontext, je->tid, 200, notify);
+			}
+			else if (MSG_IS_REGISTER(je->request))
+			{
+				std::cout << "register" << std::endl;
+				//返回注册信息
+				//OnRegister(excontext, pSipEvent);
+			}
+			// 消息
+			break;
+		}
+		
 		case EXOSIP_CALL_RINGING:
 		{
 			std::cout << "ringing" << std::endl;
@@ -273,6 +311,16 @@ void vsnc::sip::SIPClient::serverHander()
 		{
 			std::cout << "SUBSCRIPTION received" << std::endl;
 			break;//消息应答
+		}
+		case EXOSIP_CALL_RELEASED:
+		{
+			std::cout << "EXOSIP_CALL_RELEASED" << std::endl;
+			break;
+		}
+		case EXOSIP_MESSAGE_REQUESTFAILURE:
+		{
+			std::cout << "MESSAGE Failed" << std::endl;
+			break;
 		}
 		default://收到其他应答
 

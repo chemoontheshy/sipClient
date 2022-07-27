@@ -26,9 +26,9 @@ int main()
     std::cout << "s SUBSCRIBE       订阅"             << std::endl;
 
     bool flag = true;
-    SIPHeader from(ADDRCODE, "127.0.0.1", 5061, 1800);
-    SIPHeader to(ADDRCODE, "127.0.0.1", 5060, 1800);
-    SIPAuthInfo authInfo{ "127.0.0.1",NONCE,"hskj","123456",from.GetSipHeader(),ALGORITHIMH };
+    SIPHeader from("100110001001000000", "127.0.0.1", 5062, 1800);
+    SIPHeader to("100110000003010001", "172.168.7.234", 5060, 1800);
+    SIPAuthInfo authInfo{ "127.0.0.1",NONCE,"admin","123456",from.GetSipHeader(),ALGORITHIMH };
     SIPUACParam UACParam{&from,&to,&authInfo,NetworkProtocol::UDP};
     SIPClient sipClient(UACParam);
     char command;
@@ -65,10 +65,15 @@ int main()
         {
             std::cout << "invite" << std::endl;
             std::string sdp = "v=0\r\n\
-                o=anonymous 0 0 IN IP4 0.0.0.0\r\n\
-                t=1 10\r\n\
-                a=username:hskj\r\n\
-                a=password:123456\r\n";
+o=- 0 0 IN IP4 172.168.7.234\r\n\
+s=Play\r\n\
+c=IN IP4 172.168.7.234\r\n\
+m=video 8000 RTP/AVP 100\r\n\
+y=123456\r\n\
+artmap:100 H264/9000\r\n\
+afmtp:100 CIF=1;4CIF=1;F=1;K=1\r\n\
+a=rate:sub\r\n\
+a=recvonly\r\n";
             //增加sdp
             sipClient.Invite(sdp);
             break;
@@ -91,7 +96,9 @@ int main()
            //传输MESSAGE方法，也就是即时消息，和INFO方法相比，我认为主要区别是：
            //MESSAGE不用建立连接，直接传输信息，而INFO消息必须在建立INVITE的基础上传输
             std::cout << "the method : MESSAGE" << std::endl;
-            std::string msg = " This is a sip message(Method:MESSAGE)";
+            std::string msg = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n\
+                <SIP_XML EventType=\"Request_Resource\">\r\n<Item Code=\"100010000000000000\" UserCode=\"990010000000000000\" FromIndex =\"1\" ToIndex =\"30\"/>\r\n\
+</SIP_XML>\r\n";
             sipClient.Message(msg);
             break;
         }

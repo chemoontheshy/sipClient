@@ -8,7 +8,7 @@ namespace vsnc
 	namespace sip
 	{
 		/// <summary>测试地址编码</summary>
-		const std::string ADDRCODE = "100110000003010001";
+		const std::string ADDRCODE = "100110000103520001";
 		
 		/// <summary>UAS赋值的认证随机数</summary>
 		const std::string NONCE = "9bd055";
