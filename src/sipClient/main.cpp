@@ -26,10 +26,15 @@ int main()
     std::cout << "s SUBSCRIBE       ¶©ÔÄ"             << std::endl;
 
     bool flag = true;
-    SIPHeader from("100110001001000000", "127.0.0.1", 5062, 1800);
-    SIPHeader to("100110000003010001", "172.168.7.234", 5060, 1800);
-    SIPAuthInfo authInfo{ "127.0.0.1",NONCE,"admin","123456",from.GetSipHeader(),ALGORITHIMH };
-    SIPUACParam UACParam{&from,&to,&authInfo,NetworkProtocol::UDP};
+    SIPUACParam UACParam;
+    UACParam.From.SetSIPHeader("100110001001000000", "172.168.7.234", 5062, 1800);
+    UACParam.To.SetSIPHeader("100110000003010001", "172.168.7.234", 5060, 1800);
+    UACParam.SIPAuth.Uri = UACParam.From.GetSipHeader();
+    UACParam.SIPAuth.Nonce = NONCE;
+    UACParam.SIPAuth.Username = "admin";
+    UACParam.SIPAuth.Response = "hs123456";
+    UACParam.SIPAuth.DigestRealm = "172.168.7.234";
+    UACParam.SIPAuth.Algorithm = ALGORITHIMH;
     SIPClient sipClient(UACParam);
     char command;
     sipClient.startWork();

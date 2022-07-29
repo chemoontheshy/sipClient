@@ -62,19 +62,23 @@ namespace vsnc
 			/// <param name="addrCode">地址编码</param>
 			/// <param name="addrIp">域名IP地址</param>
 			/// <param name="addrPort">端口</param>
-			SIPHeader(const std::string addrCode,const std::string addrIp,
-				const int addrPort,const int expires) :
-				m_sAddrCode(addrCode),
-				m_sAddrIp(addrIp),
-				m_sAddrPort(addrPort),
-				m_iExpires(expires) {};
+			SIPHeader() = default;
 			
 			/// <summary>
 			/// 析构函数
 			/// </summary>
 			~SIPHeader() = default;
 			
-			
+			void SetSIPHeader(const std::string addrCode, const std::string addrIp,
+				const int addrPort, const int expires) noexcept
+			{
+				m_sAddrCode = addrCode;
+				m_sAddrIp = addrIp;
+				m_sAddrPort = addrPort;
+				m_iExpires = expires;
+
+			}
+
 			/// <summary>
 			/// 获取SIPHeader eg:sip:100010111@127.0.0.1:5061
 			/// </summary>
@@ -82,8 +86,17 @@ namespace vsnc
 			std::string GetSipHeader() const noexcept
 			{
 				std::stringstream stream;
-				stream << "sip:" << m_sAddrCode << "@" << m_sAddrIp << ":" << m_sAddrPort;
+				stream << "<sip:" << m_sAddrCode << "@" << m_sAddrIp << ":" << m_sAddrPort<<">";
 				return stream.str();
+			}
+
+			std::string GetContact() const noexcept
+			{
+				std::string sTmp = GetSipHeader();
+				std::stringstream stream;
+				stream << ";" << "expires=" << m_iExpires;
+				sTmp += stream.str();
+				return sTmp;
 			}
 
 			/// <summary>
@@ -117,7 +130,7 @@ namespace vsnc
 			/// <summary>端口</summary>
 			int         m_sAddrPort;
 			/// <summary>超时时间，Contract的200必须带此参数</summary>
-			int         m_iExpires;
+			int         m_iExpires = 0;
 		};
 
 
@@ -169,11 +182,11 @@ namespace vsnc
 		struct SIPUACParam
 		{
 			/// <summary>客户端</summary>
-			SIPHeader*      From;
+			SIPHeader      From;
 			/// <summary>服务端</summary>
-			SIPHeader*      To;
+			SIPHeader      To;
 			/// <summary>验证信息</summary>
-			SIPAuthInfo*    SIPAuth;
+			SIPAuthInfo    SIPAuth;
 			/// <summary>通信传输协议</summary>
 			NetworkProtocol Protocol;
 		};
@@ -189,6 +202,27 @@ namespace vsnc
 			std::string     Event;
 			/// <summary>验证信息</summary>
 			int             Expires;
+		};
+		
+		/// <summary>
+		/// SIP注册信息
+		/// </summary>
+		struct SIPRegisterInfo
+		{
+			/// <summary>
+			/// 基本信息
+			/// </summary>
+			SIPContextInfo BaseInfo;
+
+			/// <summary>
+			/// 注册验证校验信息
+			/// </summary>
+			SIPAuthInfo    AuthInfo;
+
+			/// <summary>
+			/// 是否带有验证信息
+			/// </summary>
+			bool           IsAuthNull;
 		};
 
 	}

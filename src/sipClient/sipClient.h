@@ -84,20 +84,31 @@ namespace vsnc
 			/// <returns>成功返回true，错误返回false</returns>
 			bool Subscription(const SubscriptionParam subParam) noexcept;
 		
+			/// <summary>
+			/// 启动接收线程
+			/// </summary>
 			void startWork();
 		protected:
+			/// <summary>
+			/// 接收线程句柄
+			/// </summary>
 			void serverHander();
+
+			/// <summary>
+			/// 接收线程
+			/// </summary>
+			/// <param name="sip">类的指针</param>
 			static void threadFun(SIPClient* sip);
 		private:
 
 			/// <summary>权柄</summary>
 			eXosip_t*    m_pExcontext;
 			/// <summary>客户端信息</summary>
-			SIPHeader*   m_pFrom;
+			SIPHeader    m_pFrom;
 			/// <summary>服务端信息</summary>
-			SIPHeader*   m_pTo;
+			SIPHeader    m_pTo;
 			/// <summary>验证信息</summary>
-			SIPAuthInfo* m_pSIPAuth;
+			SIPAuthInfo  m_pSIPAuth;
 			/// <summary>注册ID</summary>
 			int          m_iRegisterID;
 			/// <summary>会话ID（cid)</summary>

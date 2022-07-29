@@ -4,7 +4,186 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <thread>
+#include <sstream>
 
+namespace vsnc
+{
+	namespace sip
+	{
+		/// <summary>
+		/// 注册处理
+		/// </summary>
+		/// <param name="excontext">sip句柄</param>
+		/// <param name="osipEvent">事件句柄</param>
+		static void __on_register(eXosip_t* excontext, eXosip_event_t* osipEvent , const SIPAuthInfo& authInfo);
+		
+		/// <summary>
+		/// 解析注册信息
+		/// </summary>
+		/// <param name="request">注册总信息</param>
+		/// <param name="reqId">注册ID</param>
+		/// <param name="regInfo">注册信息，填入一个空的，获取相关信息</param>
+		static void __parser_register_info(osip_message_t* request, const int reqId, SIPRegisterInfo& regInfo);
+		
+		/// <summary>
+		/// 打印信息
+		/// </summary>
+		/// <param name="info">注册信息</param>
+		static void __print_register_info(const SIPRegisterInfo& info);
+
+		/// <summary>
+		/// 发送注册回复
+		/// </summary>
+		/// <param name="excontext">sip句柄</param>
+		/// <param name="info">注册信息</param>
+		static void __send_register_answer(eXosip_t* excontext, const SIPRegisterInfo& info);
+	}
+}
+
+void vsnc::sip::__on_register(eXosip_t* excontext, eXosip_event_t* osipEvent ,const SIPAuthInfo& authInfo)
+{
+	SIPRegisterInfo regInfo;
+	// 解析注册报文
+	__parser_register_info(osipEvent->request,osipEvent->tid, regInfo);
+
+	/*if (regInfo.AuthInfo.Username == authInfo.Username && regInfo.AuthInfo.Response == authInfo.Response)
+	{
+		std::cout << "check true"  << std::endl;
+		regInfo.IsAuthNull = false;
+	}
+	else
+	{
+		std::cout << "check false" << std::endl;
+		regInfo.IsAuthNull = true;
+	}*/
+	// 打印解析后的注册报文
+	__print_register_info(regInfo);
+	// 回复响应
+	__send_register_answer(excontext, regInfo);
+}
+
+void vsnc::sip::__parser_register_info(osip_message_t* request, const int reqId, SIPRegisterInfo& regInfo)
+{
+	// 方法名
+	regInfo.BaseInfo.Method = request->sip_method;
+	// From
+	regInfo.BaseInfo.From.SetSIPHeader(request->from->url->username,
+		request->from->url->host,std::stoi(request->from->url->port), 0);
+	// Proxy
+	regInfo.BaseInfo.Proxy.SetSIPHeader(request->to->url->username,
+		request->to->url->host, std::stoi(request->to->url->port), 0);
+
+	// 获取expires
+	osip_header_t* header = nullptr;
+	{
+		osip_message_header_get_byname(request, "expires",0,&header);
+		if (header && header->hvalue)
+		{
+			regInfo.BaseInfo.Expires = std::stoi(header->hvalue);
+		}
+	}
+	// 获取contact字段
+	osip_contact_t* contact = nullptr;
+	osip_message_get_contact(request, 0, &contact);
+	if (contact)
+	{
+		regInfo.BaseInfo.Contact.SetSIPHeader(contact->url->username,
+			contact->url->host, std::stoi(contact->url->port), regInfo.BaseInfo.Expires);
+	}
+	// 注册返回 ，由发送方维护的请求ID 接收方接收后原样返回即可
+	regInfo.BaseInfo.SipRequestId = reqId;
+
+	// CallId
+	regInfo.BaseInfo.CallId = request->call_id->number;
+
+	// 解析context消息
+	osip_body_t* body = nullptr;
+	osip_message_get_body(request, 0, &body);
+	if (body)
+	{
+		regInfo.BaseInfo.Content = body->body;
+	}
+
+	// 鉴权信息
+	osip_authorization_t* authentication = nullptr;
+	{
+		osip_message_get_authorization(request, 0, &authentication);
+		if (!authentication)
+		{
+			regInfo.IsAuthNull = true;
+		}
+		else
+		{
+
+			regInfo.IsAuthNull = false;
+			// 用户名
+			regInfo.AuthInfo.Username = authentication->username;
+			// 加密方法名
+			regInfo.AuthInfo.Algorithm = authentication->algorithm;
+			// 主机名
+			if (authentication->realm)
+			{
+				regInfo.AuthInfo.DigestRealm = authentication->realm;
+			}
+			// 随机数
+			regInfo.AuthInfo.Nonce = authentication->nonce;
+			// 密码
+			regInfo.AuthInfo.Response = authentication->response;
+			// 平台地址
+			regInfo.AuthInfo.Uri = authentication->uri;
+
+			
+			
+
+		}
+	}
+	authentication = nullptr;
+}
+
+void vsnc::sip::__print_register_info(const SIPRegisterInfo& info)
+{
+}
+
+void vsnc::sip::__send_register_answer(eXosip_t* excontext, const SIPRegisterInfo& info)
+{
+	osip_message_t* answer = nullptr;
+	int iStauts;
+	(info.IsAuthNull) ? iStauts = 401 : iStauts = 200;
+	eXosip_lock(excontext);
+	{
+		int ret = eXosip_message_build_answer(excontext, info.BaseInfo.SipRequestId, iStauts,&answer);
+	
+		if (iStauts == 401)
+		{
+			std::string strAnswer;
+			strAnswer = "Digest realm=\"" + info.BaseInfo.From.GetAddrIp() +
+				"\",nonce=\"" + NONCE +"\",algorithm=" + ALGORITHIMH;
+			osip_message_set_header(answer, "WWW-Authenticate", strAnswer.c_str());
+			std::cout << "status code 401" << std::endl;
+		}
+		else if (iStauts == 200)
+		{
+			osip_message_set_header(answer, "Contact", info.BaseInfo.Contact.GetContact().c_str());
+
+		}
+		if (OSIP_SUCCESS != ret)
+		{
+			std::cout << "error" << std::endl;
+
+			auto sendRet = eXosip_message_send_answer(excontext, info.BaseInfo.SipRequestId, 400, nullptr);
+			std::cout << sendRet << std::endl;
+		}
+		else
+		{
+			eXosip_message_send_answer(excontext, info.BaseInfo.SipRequestId, 200, answer);
+		}
+		if (0 == info.BaseInfo.Expires)
+		{
+			eXosip_register_remove(excontext, info.BaseInfo.Expires);
+		}
+	}
+	eXosip_unlock(excontext);
+}
 vsnc::sip::SIPClient::SIPClient(SIPUACParam sipParam):
 	m_pFrom(sipParam.From),
 	m_pTo(sipParam.To),
@@ -26,11 +205,11 @@ vsnc::sip::SIPClient::SIPClient(SIPUACParam sipParam):
 	int ret;
 	if (sipParam.Protocol == NetworkProtocol::TCP)
 	{
-		ret = eXosip_listen_addr(m_pExcontext, IPPROTO_TCP, nullptr, m_pFrom->GetAddrPort(), AF_INET, 0);
+		ret = eXosip_listen_addr(m_pExcontext, IPPROTO_TCP, nullptr, m_pFrom.GetAddrPort(), AF_INET, 0);
 	}
 	else
 	{
-		ret = eXosip_listen_addr(m_pExcontext, IPPROTO_UDP, nullptr, m_pFrom->GetAddrPort(), AF_INET, 0);
+		ret = eXosip_listen_addr(m_pExcontext, IPPROTO_UDP, nullptr, m_pFrom.GetAddrPort(), AF_INET, 0);
 	}
 	if (OSIP_SUCCESS != ret)
 	{
@@ -38,6 +217,13 @@ vsnc::sip::SIPClient::SIPClient(SIPUACParam sipParam):
 		Close();
 		exit(-1);
 	}
+	//增加账号验证信息
+	eXosip_add_authentication_info(m_pExcontext,
+		m_pSIPAuth.Username.c_str(),
+		m_pSIPAuth.Username.c_str(),
+		m_pSIPAuth.Response.c_str(),
+		m_pSIPAuth.Algorithm.c_str(),
+		m_pSIPAuth.DigestRealm.c_str());
 }
 
 vsnc::sip::SIPClient::~SIPClient()
@@ -56,8 +242,8 @@ bool vsnc::sip::SIPClient::Reister() noexcept
 	osip_message_t* reg;
 	eXosip_lock(m_pExcontext);
 	m_iRegisterID = eXosip_register_build_initial_register(m_pExcontext,
-		m_pFrom->GetSipHeader().c_str(), m_pTo->GetSipHeader().c_str(),
-		nullptr, m_pFrom->GetExpires(), &reg);
+		m_pFrom.GetSipHeader().c_str(), m_pTo.GetSipHeader().c_str(),
+		nullptr, m_pFrom.GetExpires(), &reg);
 
 	if (m_iRegisterID < 0)
 	{
@@ -67,11 +253,11 @@ bool vsnc::sip::SIPClient::Reister() noexcept
 	}
 	//增加账号验证信息
 	auto ret = eXosip_add_authentication_info(m_pExcontext,
-		m_pSIPAuth->Username.c_str(),
-		m_pSIPAuth->Username.c_str(),
-		m_pSIPAuth->Response.c_str(),
-		m_pSIPAuth->Algorithm.c_str(),
-		m_pSIPAuth->DigestRealm.c_str());
+		m_pSIPAuth.Username.c_str(),
+		m_pSIPAuth.Username.c_str(),
+		m_pSIPAuth.Response.c_str(),
+		m_pSIPAuth.Algorithm.c_str(),
+		m_pSIPAuth.DigestRealm.c_str());
 	//eXosip_add_authentication_info(m_pExcontext, "hskj", "hskj", "12456", "MD5", nullptr);
 	eXosip_register_send_register(m_pExcontext, m_iRegisterID, reg);
 
@@ -83,7 +269,7 @@ bool vsnc::sip::SIPClient::Refresh() noexcept
 {
 	osip_message_t* reg;
 	eXosip_lock(m_pExcontext);
-	m_iRegisterID = eXosip_register_build_register(m_pExcontext, m_iRegisterID, m_pFrom->GetExpires(), &reg);
+	m_iRegisterID = eXosip_register_build_register(m_pExcontext, m_iRegisterID, m_pFrom.GetExpires(), &reg);
 	if (m_iRegisterID < 0)
 	{
 		std::cout << "eXosip_register_build_initial_register failed" << std::endl;
@@ -117,8 +303,8 @@ bool vsnc::sip::SIPClient::Invite(const std::string sdp) noexcept
 {
 	osip_message_t* invite;
 	eXosip_call_build_initial_invite(m_pExcontext,
-		&invite, m_pTo->GetSipHeader().c_str(),
-		m_pFrom->GetSipHeader().c_str(),
+		&invite, m_pTo.GetSipHeader().c_str(),
+		m_pFrom.GetSipHeader().c_str(),
 		nullptr, "This is a call for conversation");
 	osip_message_set_body(invite, sdp.c_str(), sdp.size());
 	osip_message_set_content_type(invite, "application/sdp");
@@ -151,8 +337,8 @@ bool vsnc::sip::SIPClient::Message(const std::string context) noexcept
 	eXosip_message_build_request(m_pExcontext,
 		&message,
 		"MESSAGE",
-		m_pTo->GetSipHeader().c_str(),
-		m_pFrom->GetSipHeader().c_str(),
+		m_pTo.GetSipHeader().c_str(),
+		m_pFrom.GetSipHeader().c_str(),
 		nullptr);
 	osip_message_set_body(message, context.c_str(), context.length());
 	osip_message_set_content_type(message, "application/xml");
@@ -166,8 +352,8 @@ bool vsnc::sip::SIPClient::Notify(const std::string context) noexcept
 	eXosip_message_build_request(m_pExcontext,
 		&notify,
 		"NOTIFY",
-		m_pTo->GetSipHeader().c_str(),
-		m_pFrom->GetSipHeader().c_str(),
+		m_pTo.GetSipHeader().c_str(),
+		m_pFrom.GetSipHeader().c_str(),
 		nullptr);
 	osip_message_set_body(notify, context.c_str(), context.length());
 	osip_message_set_content_type(notify, "application/xml");
@@ -181,9 +367,9 @@ bool vsnc::sip::SIPClient::Subscription(const SubscriptionParam subParam) noexce
 	osip_message_t* subscribe;
 	eXosip_subscription_build_initial_subscribe(m_pExcontext,
 		&subscribe,
-		m_pTo->GetSipHeader().c_str(),
-		m_pFrom->GetSipHeader().c_str(),
-		m_pTo->GetSipHeader().c_str(),
+		m_pTo.GetSipHeader().c_str(),
+		m_pFrom.GetSipHeader().c_str(),
+		m_pTo.GetSipHeader().c_str(),
 		subParam.Event.c_str(),
 		subParam.Expires);
 	osip_message_set_body(subscribe, subParam.Context.c_str(), subParam.Context.length());
@@ -256,6 +442,8 @@ void vsnc::sip::SIPClient::serverHander()
 				std::cout << "register" << std::endl;
 				//返回注册信息
 				//OnRegister(excontext, pSipEvent);
+				__on_register(m_pExcontext, je,m_pSIPAuth);
+				std::cout << "register ok" << std::endl;
 			}
 			// 消息
 			break;
