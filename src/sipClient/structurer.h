@@ -227,6 +227,41 @@ namespace vsnc
 			bool           IsAuthNull;
 		};
 
+
+		struct RequestResource
+		{
+			/// <summary>事件类型</summary>
+			std::string  EventType;
+			/// <summary>节点地址编码</summary>
+			std::string  Code;
+			/// <summary>期望返回的起始记录数</summary>
+			std::string  FromIndex;
+			/// <summary>期望返回的结束记录数</summary>
+			std::string  ToIndex;
+		};
+
+		typedef struct RequestHistoryAlarm
+		{
+			/// <summary>事件类型</summary>
+			std::string  EventType;
+			/// <summary>查询告警地址编码</summary>
+			std::string  Code;
+			/// <summary>用户地址编码</summary>
+			std::string  UserCode;
+			/// <summary>告警类型</summary>
+			std::string  Type;
+			/// <summary>开始时间，格式如：1990-01-01T00:00:00Z</summary>
+			std::string  BeginTime;
+			/// <summary>结束时间，格式如：1990-01-01T00:00:00Z</summary>
+			std::string  EndTime;
+			/// <summary>告警级别</summary>
+			std::string  Level;
+			/// <summary>期望返回的起始记录数</summary>
+			std::string  FromIndex;
+			/// <summary>期望返回的结束记录数</summary>
+			std::string  ToIndex;
+		}RequestHistoryVideo;
+	
 		/// <summary>
 		/// 资源上报Head
 		/// </summary>
@@ -276,14 +311,46 @@ namespace vsnc
 		};
 
 		/// <summary>
+		/// 录像检索Body
+		/// </summary>
+		struct HistoryVideoBody
+		{
+			/// <summary>录像文件名称</summary>
+			std::string FileName;
+			/// <summary>录像文件URL</summary>
+			std::string FileUrl;
+			/// <summary>开始时间，格式如：1990-01-01T00:00:00Z</summary>
+			std::string BeginTime;
+			/// <summary>结束时间，格式如：1990-01-01T00:00:00Z</summary>
+			std::string EndTime;
+			/// <summary>录像文件大小</summary>
+			int32_t     Size;
+			/// <summary>解码插值标签，参照文档中的RTP PayLoad值</summary>
+			int32_t     DecoderTag;
+			/// <summary>录像类型，按定义录像类型值，支持32位录像类型定义，1为有效，0为无效。</summary>
+			int32_t     Type;
+		};
+
+		/// <summary>
 		/// 资源包
 		/// </summary>
 		struct Resource
 		{
 			/// <summary>资源包Head</summary>
-			ResourceHead            Head;
+			ResourceHead                Head;
 			/// <summary>资源包Body</summary>
-			std::list<ResourceBody> Body;
+			std::list<ResourceBody>     Body;
+		};
+
+		/// <summary>
+		/// 录像文件包
+		/// </summary>
+		struct HistoryVideo
+		{
+			/// <summary>录像文件包Head</summary>
+			ResourceHead                Head;
+			/// <summary>录像文件包Body</summary>
+			std::list<HistoryVideoBody> Body;
 		};
 
 	}

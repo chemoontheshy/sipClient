@@ -95,6 +95,15 @@ a=recvonly\r\n";
             flag = false;
             break;
         }
+        case 'o':
+        {
+            std::string msg = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\
+<SIP_XML EventType=\"Request_History_Video\" >\r\n\
+<Item Code = \"100110000003010001\" UserCode = \"990010000000000000\" Type=\"-1\" BeginTime=\"2019-07-22T00:00:00Z\" EndTime=\"2022-07-31T23:59:59Z\" Level=\"1\" FromIndex =\"1\" ToIndex =\"30\"/>\r\n\
+</SIP_XML>\r\n";
+            sipClient.Message(msg);
+            break;
+        }
         case 'l':
         {
             std::string msg = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\
@@ -104,16 +113,17 @@ a=recvonly\r\n";
             sipClient.Message(msg);
             break;
         }
-
         case 'm':
         {
            //传输MESSAGE方法，也就是即时消息，和INFO方法相比，我认为主要区别是：
            //MESSAGE不用建立连接，直接传输信息，而INFO消息必须在建立INVITE的基础上传输
             std::cout << "the method : MESSAGE" << std::endl;
-            std::string msg = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n\
-                <SIP_XML EventType=\"Request_Resource\">\r\n<Item Code=\"100110001001000000\" UserCode=\"100010000000000000\" FromIndex =\"1\" ToIndex =\"30\"/>\r\n\
-</SIP_XML>\r\n";
-            sipClient.Message(msg);
+            RequestResource request;
+            request.EventType = "Request_Resource";
+            request.Code = "100110001001000000";
+            request.FromIndex = "1";
+            request.ToIndex = "30";
+            sipClient.Message(request);
             break;
         }
         case 'n':

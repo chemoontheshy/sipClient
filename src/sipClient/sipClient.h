@@ -70,6 +70,10 @@ namespace vsnc
 			/// <returns>成功返回true，错误返回false</returns>
 			bool Message(const std::string context) noexcept;
 
+			bool Message(const RequestResource& request) noexcept;
+
+			bool Message(const RequestHistoryAlarm& request) noexcept;
+
 			/// <summary>
 			/// 通知
 			/// </summary>
@@ -90,7 +94,11 @@ namespace vsnc
 			void StartWork();
 
 			
-			Resource GetResource() noexcept { return m_pPassiveResoure; }
+			Resource     GetPassiveResource()  noexcept { return m_pPassiveResoure; }
+
+			Resource     GetActiveResource()   noexcept { return m_pActiveResoure; }
+
+			HistoryVideo GetHistoryVideo()     noexcept { return m_pHistoryVideo; }
 		protected:
 			/// <summary>
 			/// 接收线程句柄
@@ -122,8 +130,10 @@ namespace vsnc
 			bool         m_bHander;
 			/// <summary>上报资源的数据</summary>
 			Resource     m_pPassiveResoure;
-			/// <summary>上报资源的数据</summary>
+			/// <summary>获取资源信息的数据</summary>
 			Resource     m_pActiveResoure;
+			/// <summary>录像文件的数据</summary>
+			HistoryVideo m_pHistoryVideo;
 		};
 	}
 }
