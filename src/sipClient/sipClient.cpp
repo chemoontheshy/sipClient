@@ -5,6 +5,8 @@
 #include <windows.h>
 #include <thread>
 #include <sstream>
+#include "xml/tinyxml.h"
+#include "xml/tinystr.h"
 
 namespace vsnc
 {
@@ -46,16 +48,7 @@ void vsnc::sip::__on_register(eXosip_t* excontext, eXosip_event_t* osipEvent ,co
 	// 解析注册报文
 	__parser_register_info(osipEvent->request,osipEvent->tid, regInfo);
 
-	/*if (regInfo.AuthInfo.Username == authInfo.Username && regInfo.AuthInfo.Response == authInfo.Response)
-	{
-		std::cout << "check true"  << std::endl;
-		regInfo.IsAuthNull = false;
-	}
-	else
-	{
-		std::cout << "check false" << std::endl;
-		regInfo.IsAuthNull = true;
-	}*/
+
 	// 打印解析后的注册报文
 	__print_register_info(regInfo);
 	// 回复响应
@@ -217,13 +210,6 @@ vsnc::sip::SIPClient::SIPClient(SIPUACParam sipParam):
 		Close();
 		exit(-1);
 	}
-	//增加账号验证信息
-	eXosip_add_authentication_info(m_pExcontext,
-		m_pSIPAuth.Username.c_str(),
-		m_pSIPAuth.Username.c_str(),
-		m_pSIPAuth.Response.c_str(),
-		m_pSIPAuth.Algorithm.c_str(),
-		m_pSIPAuth.DigestRealm.c_str());
 }
 
 vsnc::sip::SIPClient::~SIPClient()
@@ -431,8 +417,53 @@ void vsnc::sip::SIPClient::serverHander()
 				{
 					osip_body_t* body;
 					osip_message_get_body(je->request, 0, &body);
-					std::cout << "I get the msg is : " << body->body << std::endl;
+					std::cout << "----------" << std::endl;
+					std::cout  << body->body << std::endl;
+					// XML操作
+					TiXmlDocument* pDocument = new TiXmlDocument();
+					//pDocument->LoadFile(body->body, TIXML_ENCODING_UTF8);
+					pDocument->Parse(body->body);
+					auto pDeclar = pDocument->FirstChild()->ToDeclaration();
+					
+					// 版本
+					if (pDeclar)
+					{
+						std::stringstream stream;
+						stream << "version: " << pDeclar->Version() << ";" << "encoding: " << pDeclar->Encoding();
+						std::cout << stream.str() << std::endl;
+					}
+					
+					// 根节点
+					auto root = pDocument->FirstChildElement("SIP_XML");
+					if (root)
+					{
+						m_pPassiveResoure.Head.EventType = root->Attribute("EventType");
+						m_pPassiveResoure.Head.Code = root->FirstChildElement("Code")->GetText();
+						auto subList = root->FirstChildElement("SubList");
+						if (subList)
+						{
+							m_pPassiveResoure.Head.SubNum = std::stoi(subList->Attribute("SubNum"));
+							auto item = subList->FirstChildElement("Item");
+							for (; item != nullptr; item = item->NextSiblingElement("Item"))
+							{
+								SetConsoleOutputCP(CP_UTF8);
+								ResourceBody body;
+								body.SubNum = std::stoi(item->Attribute("SubNum"));
+								body.Name = item->Attribute("Name");
+								body.Status = std::stoi(item->Attribute("Status"));
+								body.DecoderTag = std::stoi(item->Attribute("DecoderTag"));
+								std::string longitude = item->Attribute("Longitude");
+								std::string latitude = item->Attribute("Latitude");
+								(longitude.empty()) ? body.Longitude = 0 : body.Longitude = std::stoi(longitude);
+								(latitude.empty()) ? body.Latitude = 0 : body.Latitude = std::stoi(latitude);
+								m_pPassiveResoure.Body.push_back(body);
+								std::cout << body.Name << std::endl;
+							}
+						}
+					}
+					
 				}
+
 				osip_message_t* notify = nullptr;
 				eXosip_message_build_answer(m_pExcontext, je->tid, 200, &notify);
 				eXosip_message_send_answer(m_pExcontext, je->tid, 200, notify);
@@ -493,6 +524,46 @@ void vsnc::sip::SIPClient::serverHander()
 		case EXOSIP_MESSAGE_ANSWERED:
 		{
 			std::cout << "MESSAGE received" << std::endl;
+			osip_body_t* body;
+			osip_message_get_body(je->response, 0, &body);
+			std::cout << "I get the msg is : " << body->body << std::endl;
+			// XML操作
+			TiXmlDocument* pDocument = new TiXmlDocument();
+			pDocument->Parse(body->body);
+			auto pDeclar = pDocument->FirstChild()->ToDeclaration();
+
+			// 根节点
+			auto root = pDocument->FirstChildElement("SIP_XML");
+			if (root)
+			{
+				m_pActiveResoure.Head.EventType = root->Attribute("EventType");
+				auto subList = root->FirstChildElement("SubList");
+				if (subList)
+				{
+					m_pActiveResoure.Head.Code = subList->Attribute("Code");
+					m_pActiveResoure.Head.SubNum = std::stoi(subList->Attribute("SubNum"));
+					m_pActiveResoure.Head.RealNum = std::stoi(subList->Attribute("RealNum"));
+					m_pActiveResoure.Head.FromIndex = std::stoi(subList->Attribute("FromIndex"));
+					m_pActiveResoure.Head.ToIndex = std::stoi(subList->Attribute("ToIndex"));
+					auto item = subList->FirstChildElement("Item");
+					for (; item != nullptr; item = item->NextSiblingElement("Item"))
+					{
+						SetConsoleOutputCP(CP_UTF8);
+						ResourceBody body;
+						body.SubNum = std::stoi(item->Attribute("SubNum"));
+						body.Name = item->Attribute("Name");
+						body.Status = std::stoi(item->Attribute("Status"));
+						body.DecoderTag = std::stoi(item->Attribute("DecoderTag"));
+						std::string longitude = item->Attribute("Longitude");
+						std::string latitude = item->Attribute("Latitude");
+						(longitude.empty()) ? body.Longitude = 0 : body.Longitude = std::stoi(longitude);
+						(latitude.empty()) ? body.Latitude = 0 : body.Latitude = std::stoi(latitude);
+						m_pActiveResoure.Body.push_back(body);
+						std::cout << body.Name << std::endl;
+					}
+				}
+			}
+
 			break;//消息应答
 		}
 		case EXOSIP_SUBSCRIPTION_ANSWERED:
@@ -524,7 +595,7 @@ void vsnc::sip::SIPClient::threadFun(SIPClient* sip)
 	sip->serverHander();
 }
 
-void vsnc::sip::SIPClient::startWork()
+void vsnc::sip::SIPClient::StartWork()
 {
 	std::thread workThread(threadFun, this);
 	workThread.detach();

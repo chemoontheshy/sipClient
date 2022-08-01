@@ -3,9 +3,32 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\sipClient\sipClient.cpp" />
     <ClCompile Include="..\..\src\sipClient\main.cpp" />
+    <ClCompile Include="..\..\src\sipClient\xml\tinystr.cpp">
+      <Filter>xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sipClient\xml\tinyxml.cpp">
+      <Filter>xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sipClient\xml\tinyxmlerror.cpp">
+      <Filter>xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sipClient\xml\tinyxmlparser.cpp">
+      <Filter>xml</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\sipClient\sipClient.h" />
     <ClInclude Include="..\..\src\sipClient\structurer.h" />
+    <ClInclude Include="..\..\src\sipClient\xml\tinystr.h">
+      <Filter>xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sipClient\xml\tinyxml.h">
+      <Filter>xml</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="xml">
+      <UniqueIdentifier>{ed6df906-ac36-4a6b-92d8-7744eab7df5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

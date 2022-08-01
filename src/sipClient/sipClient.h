@@ -87,7 +87,10 @@ namespace vsnc
 			/// <summary>
 			/// 启动接收线程
 			/// </summary>
-			void startWork();
+			void StartWork();
+
+			
+			Resource GetResource() noexcept { return m_pPassiveResoure; }
 		protected:
 			/// <summary>
 			/// 接收线程句柄
@@ -115,7 +118,12 @@ namespace vsnc
 			int          m_iCallID;
 			/// <summary>会话ID（did)</summary>
 			int          m_iDialogID;
+			/// <summary>接收线程启动标志</summary>
 			bool         m_bHander;
+			/// <summary>上报资源的数据</summary>
+			Resource     m_pPassiveResoure;
+			/// <summary>上报资源的数据</summary>
+			Resource     m_pActiveResoure;
 		};
 	}
 }

@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <list>
+
 namespace vsnc
 {
 	namespace sip
@@ -223,6 +225,65 @@ namespace vsnc
 			/// 是否带有验证信息
 			/// </summary>
 			bool           IsAuthNull;
+		};
+
+		/// <summary>
+		/// 资源上报Head
+		/// </summary>
+		struct ResourceHead
+		{
+			/// <summary>上报资源：Push_Resource，获取资源:Response_Resource</summary>
+			std::string  EventType;
+
+			/// <summary>节点地址编码</summary>
+			std::string  Code;
+
+			/// <summary>上报资源：当前节点包含的节点数，获取资源：实际返回资源</summary>
+			int32_t      SubNum;
+			/// <summary>上报资源：无，获取资源：实际包含资源</summary>
+			int32_t      RealNum;
+			/// <summary>上报资源：无，获取资源：起始节点数，起始值为1</summary>
+			int32_t      FromIndex;
+			/// <summary>上报资源：无，获取资源：结束节点数</summary>
+			int32_t      ToIndex;
+		};
+
+		
+
+		///XML Schema，资源上报。参数定义
+
+		/// <summary>
+		/// 资源上报Body
+		/// </summary>
+		struct ResourceBody
+		{
+			/// <summary>当前节点包含的节点数</summary>
+			int32_t       SubNum;
+			/// <summary>节点名称</summary>
+			std::string   Name;
+
+			/// <summary>节点状态值 0：不可用，1：可用</summary>
+			int32_t       Status;
+
+			/// <summary>解码插值标签，参照文档中的RTP PayLoad值</summary>
+			int32_t       DecoderTag;
+
+			/// <summary>经度值</summary>
+			double        Longitude;
+
+			/// <summary>维度值</summary>
+			double        Latitude;
+		};
+
+		/// <summary>
+		/// 资源包
+		/// </summary>
+		struct Resource
+		{
+			/// <summary>资源包Head</summary>
+			ResourceHead            Head;
+			/// <summary>资源包Body</summary>
+			std::list<ResourceBody> Body;
 		};
 
 	}
