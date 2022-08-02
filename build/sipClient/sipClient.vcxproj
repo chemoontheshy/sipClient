@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\sipClient\composeRequest.cpp" />
     <ClCompile Include="..\..\src\sipClient\main.cpp" />
+    <ClCompile Include="..\..\src\sipClient\parserResponse.cpp" />
     <ClCompile Include="..\..\src\sipClient\sipClient.cpp" />
     <ClCompile Include="..\..\src\sipClient\xml\tinystr.cpp" />
     <ClCompile Include="..\..\src\sipClient\xml\tinyxml.cpp" />
@@ -162,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\sipClient\composeRequest.h" />
+    <ClInclude Include="..\..\src\sipClient\parserResponse.h" />
     <ClInclude Include="..\..\src\sipClient\sipClient.h" />
     <ClInclude Include="..\..\src\sipClient\structurer.h" />
     <ClInclude Include="..\..\src\sipClient\xml\tinystr.h" />

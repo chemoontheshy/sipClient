@@ -19,6 +19,39 @@ namespace vsnc
 		const std::string ALGORITHIMH = "MD5";
 
 		/// <summary>
+		/// B接口协议接口枚举
+		/// </summary>
+		enum class BInterfaceAction
+		{
+			/// <summary>注册</summary>
+			B_REGISTER,
+			/// <summary>资源上报</summary>
+			B_PUSH_RESOURCE,
+			/// <summary>资源信息获取</summary>
+			B_RESPONSE_RESOURCE,
+			/// <summary>历史告警查询</summary>
+			B_HISTORY_ALARM,
+			/// <summary>录像检索</summary>
+			B_HISTORY_VIDEO,
+			/// <summary>调阅实时视频</summary>
+			B_PLAY_VIDEO,
+			/// <summary>语音对讲和广播</summary>
+			B_TALK_AUDIO,
+			/// <summary>云镜控制</summary>
+			B_CONTROL_CAMERA,
+			/// <summary>录像回访</summary>
+			B_PLAY_BACK_VIDEO,
+			/// <summary>事件订阅及通知</summary>
+			B_SUBSRIBE_ALARM,
+			/// <summary>图片抓拍</summary>
+			B_CAMERA_SNAP,
+			/// <summary>抓拍图片数据上传</summary>
+			B_UPLOAD_SNAP,
+			/// <summary>图像数据上报</summary>
+			B_SNAPSHOT_NOTIFY
+		};
+
+		/// <summary>
 		/// UAC命令
 		/// </summary>
 		enum class UACCMD
@@ -227,96 +260,6 @@ namespace vsnc
 			bool           IsAuthNull;
 		};
 
-		/// <summary>
-		/// 资源上报Head
-		/// </summary>
-		struct ResourceHead
-		{
-			/// <summary>上报资源：Push_Resource，获取资源:Response_Resource</summary>
-			std::string  EventType;
-
-			/// <summary>节点地址编码</summary>
-			std::string  Code;
-
-			/// <summary>上报资源：当前节点包含的节点数，获取资源：实际返回资源</summary>
-			int32_t      SubNum;
-			/// <summary>上报资源：无，获取资源：实际包含资源</summary>
-			int32_t      RealNum;
-			/// <summary>上报资源：无，获取资源：起始节点数，起始值为1</summary>
-			int32_t      FromIndex;
-			/// <summary>上报资源：无，获取资源：结束节点数</summary>
-			int32_t      ToIndex;
-		};
-
-		
-
-		///XML Schema，资源上报。参数定义
-
-		/// <summary>
-		/// 资源上报Body
-		/// </summary>
-		struct ResourceBody
-		{
-			/// <summary>当前节点包含的节点数</summary>
-			int32_t       SubNum;
-			/// <summary>节点名称</summary>
-			std::string   Name;
-
-			/// <summary>节点状态值 0：不可用，1：可用</summary>
-			int32_t       Status;
-
-			/// <summary>解码插值标签，参照文档中的RTP PayLoad值</summary>
-			int32_t       DecoderTag;
-
-			/// <summary>经度值</summary>
-			double        Longitude;
-
-			/// <summary>维度值</summary>
-			double        Latitude;
-		};
-
-		/// <summary>
-		/// 录像检索Body
-		/// </summary>
-		struct HistoryVideoBody
-		{
-			/// <summary>录像文件名称</summary>
-			std::string FileName;
-			/// <summary>录像文件URL</summary>
-			std::string FileUrl;
-			/// <summary>开始时间，格式如：1990-01-01T00:00:00Z</summary>
-			std::string BeginTime;
-			/// <summary>结束时间，格式如：1990-01-01T00:00:00Z</summary>
-			std::string EndTime;
-			/// <summary>录像文件大小</summary>
-			int32_t     Size;
-			/// <summary>解码插值标签，参照文档中的RTP PayLoad值</summary>
-			int32_t     DecoderTag;
-			/// <summary>录像类型，按定义录像类型值，支持32位录像类型定义，1为有效，0为无效。</summary>
-			int32_t     Type;
-		};
-
-		/// <summary>
-		/// 资源包
-		/// </summary>
-		struct Resource
-		{
-			/// <summary>资源包Head</summary>
-			ResourceHead                Head;
-			/// <summary>资源包Body</summary>
-			std::list<ResourceBody>     Body;
-		};
-
-		/// <summary>
-		/// 录像文件包
-		/// </summary>
-		struct HistoryVideo
-		{
-			/// <summary>录像文件包Head</summary>
-			ResourceHead                Head;
-			/// <summary>录像文件包Body</summary>
-			std::list<HistoryVideoBody> Body;
-		};
 
 	}
 }

@@ -1,6 +1,6 @@
 #ifndef __VSNC_SIP_CLIENT_H_
 #define __VSNC_SIP_CLIENT_H_
-#include "structurer.h"
+#include "parserResponse.h"
 
 struct eXosip_t;
 
@@ -89,12 +89,6 @@ namespace vsnc
 			/// </summary>
 			void StartWork();
 
-			
-			Resource     GetPassiveResource()  noexcept { return m_pPassiveResoure; }
-
-			Resource     GetActiveResource()   noexcept { return m_pActiveResoure; }
-
-			HistoryVideo GetHistoryVideo()     noexcept { return m_pHistoryVideo; }
 		protected:
 			/// <summary>
 			/// 接收线程句柄
@@ -125,11 +119,15 @@ namespace vsnc
 			/// <summary>接收线程启动标志</summary>
 			bool         m_bHander;
 			/// <summary>上报资源的数据</summary>
-			Resource     m_pPassiveResoure;
+			ResponsePushResourceParam m_pPushResource;
 			/// <summary>获取资源信息的数据</summary>
-			Resource     m_pActiveResoure;
+			ResponseResponseResourceParam m_pResponseResource;
+			/// <summary>历史告警</summary>
+			ResponseHistoryAlarmParam m_pHistoryAlarm;
 			/// <summary>录像文件的数据</summary>
-			HistoryVideo m_pHistoryVideo;
+			ResponseHistoryVideoParam m_pHistoryVideo;
+
+			std::unique_ptr<Response> m_pResponse;
 		};
 	}
 }

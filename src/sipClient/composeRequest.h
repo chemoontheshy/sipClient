@@ -1,26 +1,14 @@
 #ifndef __VSNC_COMPOSE_REQUEST_H__
 #define __VSNC_COMPOSE_REQUEST_H__
 
-#include <iostream>
-#include <list>
+#include "structurer.h"
+
 namespace vsnc
 {
 	namespace sip
 	{
-		enum class RequestAction
-		{
-			B_RESOURCE,
-			B_HISTORY_ALARM,
-			B_HISTORY_VIDEO,
-			B_CONTROL_CAMERA,
-			B_SUBSRIBE_ALARM,
-			B_CAMERA_SNAP,
-			B_SNAPSHOT_NOTIFY
-		};
-
-
 		/// <summary>
-		/// 通用参数
+		/// Request通用参数
 		/// </summary>
 		struct RequestParam
 		{
@@ -74,17 +62,62 @@ namespace vsnc
 			std::string  CommandPara3;
 		};
 
+		/// <summary>
+		/// 订阅Item内容
+		/// </summary>
 		struct RequestAlarmParam
 		{
+			/// <summary>摄像头编码</summary>
 			std::string Code;
+			/// <summary>类型</summary>
 			std::string Type;
 		};
 
+		/// <summary>
+		/// 订阅信息
+		/// </summary>
 		struct RequestSubAlarmParam : public RequestParam
 		{
+			/// <summary>Item列表</summary>
 			std::list<RequestAlarmParam> lstAlarmParam;
 		};
 
+		/// <summary>
+		/// 图片抓拍
+		/// </summary>
+		struct RequestCameraSnapParam : public RequestParam
+		{
+			/// <summary>图片上传地址</summary>
+			std::string PicServer;
+			/// <summary>抓拍类型</summary>
+			std::string SnapType;
+			/// <summary>时间范围</summary>
+			std::string Range;
+			/// <summary>抓拍间隔</summary>
+			std::string Interval;
+		};
+
+		struct RequestSnapshotParam
+		{
+			/// <summary>摄像头编码</summary>
+			std::string Code;
+			/// <summary>类型</summary>
+			std::string Type;
+			/// <summary>抓拍时间，eg：20220802T130204Z</summary>
+			std::string Time;
+			/// <summary>抓拍图片的下载地址</summary>
+			std::string FileUrl;
+			/// <summary>文件大小</summary>
+			std::string FileSize;
+			/// <summary>SH265sum</summary>
+			std::string Verfiy;
+		};
+
+		struct RequestSnapshotNotifyParam : public RequestParam
+		{
+			/// <summary>Item列表</summary>
+			std::list<RequestSnapshotParam> lstSnapshotParam;
+		};
 		/// <summary>
 		/// 标准构建接口
 		/// </summary>
@@ -96,7 +129,7 @@ namespace vsnc
 			/// </summary>
 			~Request() = default;
 
-			void SetParams(RequestParam* request, const RequestAction ation) noexcept;
+			void SetParams(RequestParam* request, const BInterfaceAction ation) noexcept;
 
 			/// <summary>
 			/// 获取打包好的XML字符串

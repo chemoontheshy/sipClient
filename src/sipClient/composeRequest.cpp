@@ -14,7 +14,7 @@ namespace vsnc
 	}
 }
 
-void Request::SetParams(RequestParam* request, const RequestAction action) noexcept
+void Request::SetParams(RequestParam* request, const BInterfaceAction action) noexcept
 {
 	// 创建一个XML
 	TiXmlDocument* xmlDoc = new TiXmlDocument();
@@ -28,7 +28,7 @@ void Request::SetParams(RequestParam* request, const RequestAction action) noexc
 	TiXmlElement* item = new TiXmlElement("Item");
 	switch (action)
 	{
-	case vsnc::sip::RequestAction::B_RESOURCE:
+	case vsnc::sip::BInterfaceAction::B_RESPONSE_RESOURCE:
 	{
 		auto req = reinterpret_cast<RequestResourceParam*>(request);
 		// 事件类型
@@ -39,7 +39,7 @@ void Request::SetParams(RequestParam* request, const RequestAction action) noexc
 		item->SetAttribute("ToIndex", req->ToIndex.c_str());
 		break;
 	}
-	case vsnc::sip::RequestAction::B_HISTORY_ALARM:
+	case vsnc::sip::BInterfaceAction::B_HISTORY_ALARM:
 	{
 		auto req = reinterpret_cast<RequestHistoryParam*>(request);
 		// 事件类型
@@ -55,7 +55,7 @@ void Request::SetParams(RequestParam* request, const RequestAction action) noexc
 		item->SetAttribute("ToIndex", req->ToIndex.c_str());
 		break;
 	}
-	case vsnc::sip::RequestAction::B_HISTORY_VIDEO:
+	case vsnc::sip::BInterfaceAction::B_HISTORY_VIDEO:
 	{
 		auto req = reinterpret_cast<RequestHistoryParam*>(request);
 		// 事件类型
@@ -71,7 +71,7 @@ void Request::SetParams(RequestParam* request, const RequestAction action) noexc
 		item->SetAttribute("ToIndex", req->ToIndex.c_str());
 		break;
 	}
-	case vsnc::sip::RequestAction::B_CONTROL_CAMERA:
+	case vsnc::sip::BInterfaceAction::B_CONTROL_CAMERA:
 	{
 		auto req = reinterpret_cast<RequestControl*>(request);
 		// 事件类型
@@ -86,7 +86,7 @@ void Request::SetParams(RequestParam* request, const RequestAction action) noexc
 		break;
 	}
 		
-	case vsnc::sip::RequestAction::B_SUBSRIBE_ALARM:
+	case vsnc::sip::BInterfaceAction::B_SUBSRIBE_ALARM:
 	{
 		auto req = reinterpret_cast<RequestSubAlarmParam*>(request);
 		// 事件类型
@@ -100,14 +100,41 @@ void Request::SetParams(RequestParam* request, const RequestAction action) noexc
 		}
 		break;
 	}
-	case vsnc::sip::RequestAction::B_CAMERA_SNAP:
+	case vsnc::sip::BInterfaceAction::B_CAMERA_SNAP:
+	{
+		auto req = reinterpret_cast<RequestCameraSnapParam*>(request);
+		// 事件类型
+		root->SetAttribute("EventType", req->EventType.c_str());
+		// 参数
+		item->SetAttribute("Code", req->Code.c_str());
+		item->SetAttribute("PicServer", req->PicServer.c_str());
+		item->SetAttribute("SnapType", req->SnapType.c_str());
+		item->SetAttribute("Range", req->Range.c_str());
+		item->SetAttribute("Interval", req->Interval.c_str());
 		break;
-	case vsnc::sip::RequestAction::B_SNAPSHOT_NOTIFY:
+	}
+	case vsnc::sip::BInterfaceAction::B_SNAPSHOT_NOTIFY:
+	{
+		auto req = reinterpret_cast<RequestSnapshotNotifyParam*>(request);
+		// 事件类型
+		root->SetAttribute("EventType", req->EventType.c_str());
+		for (const auto& param : req->lstSnapshotParam)
+		{
+			TiXmlElement* temp = new TiXmlElement("Item");
+			temp->SetAttribute("Code", param.Code.c_str());
+			temp->SetAttribute("Type", param.Type.c_str());
+			temp->SetAttribute("Time", param.Time.c_str());
+			temp->SetAttribute("FileUrl", param.FileUrl.c_str());
+			temp->SetAttribute("FileSize", param.FileSize.c_str());
+			temp->SetAttribute("Verfiy", param.Verfiy.c_str());
+			root->LinkEndChild(temp);
+		}
 		break;
+	}
 	default:
 		break;
 	}
-	if (action != vsnc::sip::RequestAction::B_SUBSRIBE_ALARM)
+	if (action != vsnc::sip::BInterfaceAction::B_SUBSRIBE_ALARM && action != vsnc::sip::BInterfaceAction::B_SNAPSHOT_NOTIFY)
 	{
 		root->LinkEndChild(item);
 	}
