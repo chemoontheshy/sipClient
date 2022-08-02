@@ -184,7 +184,8 @@ vsnc::sip::SIPClient::SIPClient(SIPUACParam sipParam):
 	m_iRegisterID(-1),
 	m_iCallID(-1),
 	m_iDialogID(-1),
-	m_bHander(true)
+	m_bHander(true),
+	m_pResponse(new Response())
 {
 	//初始化
 	m_pExcontext = eXosip_malloc();
@@ -332,33 +333,8 @@ bool vsnc::sip::SIPClient::Message(const std::string context) noexcept
 	return true;
 }
 
-bool vsnc::sip::SIPClient::Message(const RequestResource& request) noexcept
-{
-	// 创建一个XML
-	TiXmlDocument* tinyXmlDoc = new TiXmlDocument();
-	// 头部信息 xml的声明(三个属性：版本，编码格式，保留空串即可) 
-	TiXmlDeclaration* tinyXmlDeclare = new TiXmlDeclaration("1.0", "utf-8", "");	// 声明头部格式
-	// 根节点
-	// 创建时需要指定根节点的名称
-	TiXmlElement* root = new TiXmlElement("SIP_XML");
-	root->SetAttribute("EventType", request.EventType.c_str());
-	tinyXmlDoc->LinkEndChild(root);		// 把根节点插入到文档类中
-	// 子节点
-	TiXmlElement* item = new TiXmlElement("Item");
-	item->SetAttribute("Code", request.Code.c_str());
-	item->SetAttribute("FromIndex", request.FromIndex.c_str());
-	item->SetAttribute("ToIndex", request.ToIndex.c_str());
-	root->LinkEndChild(item);
-	TiXmlPrinter printer;
-	tinyXmlDoc->Accept(&printer);
-	std::cout << printer.CStr() << std::endl;
-	return Message(printer.CStr());
-}
 
-bool vsnc::sip::SIPClient::Message(const RequestHistoryAlarm& request) noexcept
-{
-	return false;
-}
+
 
 bool vsnc::sip::SIPClient::Notify(const std::string context) noexcept
 {
@@ -445,53 +421,12 @@ void vsnc::sip::SIPClient::serverHander()
 				{
 					osip_body_t* body;
 					osip_message_get_body(je->request, 0, &body);
-					std::cout << "----------" << std::endl;
+					if (body->body)
+					{
+						m_pResponse->Parser(body->body, BInterfaceAction::B_PUSH_RESOURCE, m_pPushResource);
+					}
 					std::cout  << body->body << std::endl;
-					// XML操作
-					TiXmlDocument* pDocument = new TiXmlDocument();
-					//pDocument->LoadFile(body->body, TIXML_ENCODING_UTF8);
-					pDocument->Parse(body->body);
-					auto pDeclar = pDocument->FirstChild()->ToDeclaration();
-					
-					// 版本
-					if (pDeclar)
-					{
-						std::stringstream stream;
-						stream << "version: " << pDeclar->Version() << ";" << "encoding: " << pDeclar->Encoding();
-						std::cout << stream.str() << std::endl;
-					}
-					
-					// 根节点
-					auto root = pDocument->FirstChildElement("SIP_XML");
-					if (root)
-					{
-						m_pPassiveResoure.Head.EventType = root->Attribute("EventType");
-						m_pPassiveResoure.Head.Code = root->FirstChildElement("Code")->GetText();
-						auto subList = root->FirstChildElement("SubList");
-						if (subList)
-						{
-							m_pPassiveResoure.Head.SubNum = std::stoi(subList->Attribute("SubNum"));
-							auto item = subList->FirstChildElement("Item");
-							for (; item != nullptr; item = item->NextSiblingElement("Item"))
-							{
-								SetConsoleOutputCP(CP_UTF8);
-								ResourceBody body;
-								body.SubNum = std::stoi(item->Attribute("SubNum"));
-								body.Name = item->Attribute("Name");
-								body.Status = std::stoi(item->Attribute("Status"));
-								body.DecoderTag = std::stoi(item->Attribute("DecoderTag"));
-								std::string longitude = item->Attribute("Longitude");
-								std::string latitude = item->Attribute("Latitude");
-								(longitude.empty()) ? body.Longitude = 0 : body.Longitude = std::stoi(longitude);
-								(latitude.empty()) ? body.Latitude = 0 : body.Latitude = std::stoi(latitude);
-								m_pPassiveResoure.Body.push_back(body);
-								std::cout << body.Name << std::endl;
-							}
-						}
-					}
-					
 				}
-
 				osip_message_t* notify = nullptr;
 				eXosip_message_build_answer(m_pExcontext, je->tid, 200, &notify);
 				eXosip_message_send_answer(m_pExcontext, je->tid, 200, notify);
@@ -554,87 +489,28 @@ void vsnc::sip::SIPClient::serverHander()
 			std::cout << "MESSAGE received" << std::endl;
 			osip_body_t* body;
 			osip_message_get_body(je->response, 0, &body);
+			if (body == nullptr) break;
 			std::cout << "I get the msg is : " << body->body << std::endl;
-			// XML操作
-			TiXmlDocument* pDocument = new TiXmlDocument();
-			pDocument->Parse(body->body);
-			auto pDeclar = pDocument->FirstChild()->ToDeclaration();
+			std::string temp = body->body;
 
-			// 根节点
-			auto root = pDocument->FirstChildElement("SIP_XML");
-			if (root)
+			if (temp.find("Response_Resource") != std::string::npos)
 			{
-				std::string eventType = root->Attribute("EventType");
-				if (eventType == "Response_Resource")
-				{
-					m_pActiveResoure.Head.EventType = root->Attribute("EventType");
-
-					auto subList = root->FirstChildElement("SubList");
-					if (subList)
-					{
-						m_pActiveResoure.Head.Code = subList->Attribute("Code");
-						m_pActiveResoure.Head.SubNum = std::stoi(subList->Attribute("SubNum"));
-						m_pActiveResoure.Head.RealNum = std::stoi(subList->Attribute("RealNum"));
-						m_pActiveResoure.Head.FromIndex = std::stoi(subList->Attribute("FromIndex"));
-						m_pActiveResoure.Head.ToIndex = std::stoi(subList->Attribute("ToIndex"));
-						auto item = subList->FirstChildElement("Item");
-						for (; item != nullptr; item = item->NextSiblingElement("Item"))
-						{
-							SetConsoleOutputCP(CP_UTF8);
-							ResourceBody body;
-							body.SubNum = std::stoi(item->Attribute("SubNum"));
-							body.Name = item->Attribute("Name");
-							body.Status = std::stoi(item->Attribute("Status"));
-							body.DecoderTag = std::stoi(item->Attribute("DecoderTag"));
-							std::string longitude = item->Attribute("Longitude");
-							std::string latitude = item->Attribute("Latitude");
-							(longitude.empty()) ? body.Longitude = 0 : body.Longitude = std::stoi(longitude);
-							(latitude.empty()) ? body.Latitude = 0 : body.Latitude = std::stoi(latitude);
-							m_pActiveResoure.Body.push_back(body);
-							std::cout << body.Name << std::endl;
-						}
-					}
-				}
-				if (eventType == "Response_History_Alarm")
-				{
-					std::cout << "Response_History_Alarm";
-				}
-				if (eventType == "Response_History_Video")
-				{
-					std::cout << "Response_History_Video";
-					m_pHistoryVideo.Head.EventType = root->Attribute("EventType");
-
-					auto subList = root->FirstChildElement("SubList");
-					if (subList)
-					{
-						
-						m_pHistoryVideo.Head.SubNum = std::stoi(subList->Attribute("SubNum"));
-						m_pHistoryVideo.Head.RealNum = std::stoi(subList->Attribute("RealNum"));
-						m_pHistoryVideo.Head.FromIndex = std::stoi(subList->Attribute("FromIndex"));
-						m_pHistoryVideo.Head.ToIndex = std::stoi(subList->Attribute("ToIndex"));
-						auto item = subList->FirstChildElement("Item");
-						for (; item != nullptr; item = item->NextSiblingElement("Item"))
-						{
-							HistoryVideoBody body;
-							body.FileName = item->Attribute("FileName");
-							body.FileUrl = item->Attribute("FileUrl");
-							body.BeginTime = item->Attribute("BeginTime");
-							body.EndTime = item->Attribute("EndTime");
-							body.Size = std::stoi(item->Attribute("Size"));
-							body.DecoderTag = std::stoi(item->Attribute("DecoderTag"));
-							body.Type = std::stoi(item->Attribute("Type"));
-							m_pHistoryVideo.Body.push_back(body);
-						}
-					}
-				}
-
-				std::cout << "er" << std::endl;
+				m_pResponse->Parser(temp, BInterfaceAction::B_RESPONSE_RESOURCE, m_pResponseResource);
 			}
-
+			if (temp.find("Response_History_Alarm") != std::string::npos)
+			{
+				m_pResponse->Parser(temp, BInterfaceAction::B_HISTORY_ALARM, m_pHistoryAlarm);
+			}
+			if (temp.find("Response_History_Video") != std::string::npos)
+			{
+				m_pResponse->Parser(temp, BInterfaceAction::B_HISTORY_VIDEO, m_pHistoryVideo);
+			}
 			break;//消息应答
 		}
 		case EXOSIP_SUBSCRIPTION_ANSWERED:
 		{
+			je;
+
 			std::cout << "SUBSCRIPTION received" << std::endl;
 			break;//消息应答
 		}
@@ -648,7 +524,13 @@ void vsnc::sip::SIPClient::serverHander()
 			std::cout << "MESSAGE Failed" << std::endl;
 			break;
 		}
+		case EXOSIP_SUBSCRIPTION_NOTIFY:
+		{
+			std::cout << "SUBSCRIPTION_NOTIFY received" << std::endl;
+			break;
+		}
 		default://收到其他应答
+
 
 			std::cout << "other response" << std::endl;
 			break;

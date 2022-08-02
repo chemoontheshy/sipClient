@@ -19,6 +19,39 @@ namespace vsnc
 		const std::string ALGORITHIMH = "MD5";
 
 		/// <summary>
+		/// B接口协议接口枚举
+		/// </summary>
+		enum class BInterfaceAction
+		{
+			/// <summary>注册</summary>
+			B_REGISTER,
+			/// <summary>资源上报</summary>
+			B_PUSH_RESOURCE,
+			/// <summary>资源信息获取</summary>
+			B_RESPONSE_RESOURCE,
+			/// <summary>历史告警查询</summary>
+			B_HISTORY_ALARM,
+			/// <summary>录像检索</summary>
+			B_HISTORY_VIDEO,
+			/// <summary>调阅实时视频</summary>
+			B_PLAY_VIDEO,
+			/// <summary>语音对讲和广播</summary>
+			B_TALK_AUDIO,
+			/// <summary>云镜控制</summary>
+			B_CONTROL_CAMERA,
+			/// <summary>录像回访</summary>
+			B_PLAY_BACK_VIDEO,
+			/// <summary>事件订阅及通知</summary>
+			B_SUBSRIBE_ALARM,
+			/// <summary>图片抓拍</summary>
+			B_CAMERA_SNAP,
+			/// <summary>抓拍图片数据上传</summary>
+			B_UPLOAD_SNAP,
+			/// <summary>图像数据上报</summary>
+			B_SNAPSHOT_NOTIFY
+		};
+
+		/// <summary>
 		/// UAC命令
 		/// </summary>
 		enum class UACCMD
@@ -130,7 +163,7 @@ namespace vsnc
 			/// <summary>域名或IP地址</summary>
 			std::string m_sAddrIp;
 			/// <summary>端口</summary>
-			int         m_sAddrPort;
+			int         m_sAddrPort = 0;
 			/// <summary>超时时间，Contract的200必须带此参数</summary>
 			int         m_iExpires = 0;
 		};
@@ -227,41 +260,6 @@ namespace vsnc
 			bool           IsAuthNull;
 		};
 
-
-		struct RequestResource
-		{
-			/// <summary>事件类型</summary>
-			std::string  EventType;
-			/// <summary>节点地址编码</summary>
-			std::string  Code;
-			/// <summary>期望返回的起始记录数</summary>
-			std::string  FromIndex;
-			/// <summary>期望返回的结束记录数</summary>
-			std::string  ToIndex;
-		};
-
-		typedef struct RequestHistoryAlarm
-		{
-			/// <summary>事件类型</summary>
-			std::string  EventType;
-			/// <summary>查询告警地址编码</summary>
-			std::string  Code;
-			/// <summary>用户地址编码</summary>
-			std::string  UserCode;
-			/// <summary>告警类型</summary>
-			std::string  Type;
-			/// <summary>开始时间，格式如：1990-01-01T00:00:00Z</summary>
-			std::string  BeginTime;
-			/// <summary>结束时间，格式如：1990-01-01T00:00:00Z</summary>
-			std::string  EndTime;
-			/// <summary>告警级别</summary>
-			std::string  Level;
-			/// <summary>期望返回的起始记录数</summary>
-			std::string  FromIndex;
-			/// <summary>期望返回的结束记录数</summary>
-			std::string  ToIndex;
-		}RequestHistoryVideo;
-	
 		/// <summary>
 		/// 资源上报Head
 		/// </summary>
