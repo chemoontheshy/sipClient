@@ -70,10 +70,6 @@ namespace vsnc
 			/// <returns>成功返回true，错误返回false</returns>
 			bool Message(const std::string context) noexcept;
 
-			bool Message(const RequestResource& request) noexcept;
-
-			bool Message(const RequestHistoryAlarm& request) noexcept;
-
 			/// <summary>
 			/// 通知
 			/// </summary>

@@ -25,10 +25,9 @@ int main()
 
     bool flag = true;
     SIPUACParam UACParam;
-    // 用户端（即平台端
-    UACParam.From.SetSIPHeader("100000000000000001", "172.168.7.234", 5062, 1800);
+    UACParam.From.SetSIPHeader("100110001001000000", "172.168.7.234", 5062, 1800);
     // 摄像头编号
-    UACParam.To.SetSIPHeader("100110000003010002", "172.168.7.234", 5060, 1800);
+    UACParam.To.SetSIPHeader("100110000003010003", "172.168.7.234", 5060, 1800);
     UACParam.SIPAuth.Uri = UACParam.From.GetSipHeader();
     UACParam.SIPAuth.Nonce = NONCE;
     UACParam.SIPAuth.Username = "admin";
@@ -47,58 +46,29 @@ int main()
         std::cin >> command;
         switch (command)
         {
-      
-        case '3':
+         //注册
+        case 'r':
         {
-            // 资源获取
-            std::cout << "the method : MESSAGE" << std::endl;
-            RequestResourceParam requestParam;
-            requestParam.EventType = "Request_Resource";
-            requestParam.Code = "100110001001000000";
-            requestParam.FromIndex = "1";
-            requestParam.ToIndex = "30";
-            request.SetParams(&requestParam, RequestAction::B_RESOURCE);
-            request.GetString(strXml);
-            sipClient.Message(strXml);
+            std::cout << "Reister" << std::endl;
+            if (!sipClient.Reister())
+            {
+                std::cout << "error" << std::endl;
+            }
             break;
         }
-        case '4':
+        case 'u':
         {
-            // 历史告警查询
-            RequestHistoryParam requestParam;
-            requestParam.EventType = "Request_History_Alarm";
-            requestParam.Code = "100110000003010002";
-            requestParam.UserCode = "100000000000000001";
-            requestParam.Type = "-1";
-            requestParam.BeginTime = "2019-07-22T00:00:00Z";
-            requestParam.EndTime = "2022-07-31T23:59:59Z";
-            requestParam.Level = "1";
-            requestParam.FromIndex = "1";
-            requestParam.ToIndex = "30";
-            request.SetParams(&requestParam, RequestAction::B_HISTORY_ALARM);
-            request.GetString(strXml);
-            sipClient.Message(strXml);
+            std::cout << "update" << std::endl;
+            sipClient.Refresh();
             break;
         }
-        case '5':
+        case 'c':
         {
-            // 录像检索
-            RequestHistoryParam requestParam;
-            requestParam.EventType = "Request_History_Video";
-            requestParam.Code = "100110000003010002";
-            requestParam.UserCode = "100000000000000001";
-            requestParam.Type = "-1";
-            requestParam.BeginTime = "2019-07-22T00:00:00Z";
-            requestParam.EndTime = "2022-07-31T23:59:59Z";
-            requestParam.Level = "1";
-            requestParam.FromIndex = "1";
-            requestParam.ToIndex = "30";
-            request.SetParams(&requestParam, RequestAction::B_HISTORY_VIDEO);
-            request.GetString(strXml);
-            sipClient.Message(strXml);
+            std::cout << "cancel" << std::endl;
+            sipClient.Logout("TER");
             break;
         }
-        case '6':
+        case 'i':
         {
             std::cout << "invite" << std::endl;
             std::string sdp = "v=0\r\n\
@@ -115,7 +85,71 @@ a=recvonly\r\n";
             sipClient.Invite(sdp);
             break;
         }
+        case 'h':
+        {
+            std::cout << "Holded" << std::endl;
+            sipClient.Bye();
+            break;
+        }
         case 'q':
+        {
+            sipClient.Close();
+            std::cout << "Exit the setup" << std::endl;
+            flag = false;
+            break;
+        }
+        case 'g':
+        {
+            // 资源获取
+            std::cout << "the method : MESSAGE" << std::endl;
+            RequestResourceParam requestParam;
+            requestParam.EventType = "Request_Resource";
+            requestParam.Code = "100110001001000000";
+            requestParam.FromIndex = "1";
+            requestParam.ToIndex = "30";
+            request.SetParams(&requestParam, RequestAction::B_RESOURCE);
+            request.GetString(strXml);
+            sipClient.Message(strXml);
+            break;
+        }
+        case 'l':
+        {
+            // 历史告警查询
+            RequestHistoryParam requestParam;
+            requestParam.EventType = "Request_History_Alarm";
+            requestParam.Code = "100110000003010002";
+            requestParam.UserCode = "990010000000000000";
+            requestParam.Type = "-1";
+            requestParam.BeginTime = "2019-07-22T00:00:00Z";
+            requestParam.EndTime = "2022-07-31T23:59:59Z";
+            requestParam.Level = "1";
+            requestParam.FromIndex = "1";
+            requestParam.ToIndex = "30";
+            request.SetParams(&requestParam, RequestAction::B_HISTORY_ALARM);
+            request.GetString(strXml);
+            sipClient.Message(strXml);
+            break;
+        }
+        case 'o':
+        {
+            // 录像检索
+            RequestHistoryParam requestParam;
+            requestParam.EventType = "Request_History_Video";
+            requestParam.Code = "100110000003010002";
+            requestParam.UserCode = "990010000000000000";
+            requestParam.Type = "-1";
+            requestParam.BeginTime = "2019-07-22T00:00:00Z";
+            requestParam.EndTime = "2022-07-31T23:59:59Z";
+            requestParam.Level = "1";
+            requestParam.FromIndex = "1";
+            requestParam.ToIndex = "30";
+            request.SetParams(&requestParam, RequestAction::B_HISTORY_VIDEO);
+            request.GetString(strXml);
+            sipClient.Message(strXml);
+            break;
+        }
+        
+        case '1':
         {
             RequestControl requestParam;
             requestParam.EventType = "Control_Camera";
@@ -130,7 +164,7 @@ a=recvonly\r\n";
             sipClient.Message(strXml);
             break;
         }
-        case 'e':
+        case '2':
         {
             RequestControl requestParam;
             requestParam.EventType = "Control_Camera";
@@ -145,7 +179,7 @@ a=recvonly\r\n";
             sipClient.Message(strXml);
             break;
         }
-        case 'a':
+        case '3':
         {
             RequestControl requestParam;
             requestParam.EventType = "Control_Camera";
@@ -160,7 +194,7 @@ a=recvonly\r\n";
             sipClient.Message(strXml);
             break;
         }
-        case 'd':
+        case '4':
         {
             RequestControl requestParam;
             requestParam.EventType = "Control_Camera";
@@ -175,31 +209,17 @@ a=recvonly\r\n";
             sipClient.Message(strXml);
             break;
         }
-        case '9':
+        case 'n':
         {
-            
-            sipClient.Notify(strXml);
+           
+            std::string notify = "<xml>notify</xml>";
+            sipClient.Notify(notify);
             break;
         }
         case 's':
         {
             std::cout << "the method : SUBSCRIBE" << std::endl;
-            RequestSubAlarmParam requestParam;
-            requestParam.EventType = "Subscribe_Alarm";
-            //此刻的Code无意义，可不要
-            requestParam.Code = "100110000003010002";
-            RequestAlarmParam alarmParam1;
-            alarmParam1.Code = "100110000003010001";
-            alarmParam1.Type = "255";
-            RequestAlarmParam alarmParam2;
-            alarmParam2.Code = "100110000003010002";
-            alarmParam2.Type = "255";
-            requestParam.lstAlarmParam.push_back(alarmParam1);
-            requestParam.lstAlarmParam.push_back(alarmParam2);
-            request.SetParams(&requestParam, RequestAction::B_SUBSRIBE_ALARM);
-            request.GetString(strXml);
-            std::cout << strXml << std::endl;
-            SubscriptionParam subParam{ strXml ,"presence",3600 };
+            SubscriptionParam subParam{ "<xml>notify</xml>" ,"presence",3600 };
             sipClient.Subscription(subParam);
             break;
         }

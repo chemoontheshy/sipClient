@@ -130,7 +130,7 @@ namespace vsnc
 			/// <summary>域名或IP地址</summary>
 			std::string m_sAddrIp;
 			/// <summary>端口</summary>
-			int         m_sAddrPort;
+			int         m_sAddrPort = 0;
 			/// <summary>超时时间，Contract的200必须带此参数</summary>
 			int         m_iExpires = 0;
 		};
@@ -227,41 +227,6 @@ namespace vsnc
 			bool           IsAuthNull;
 		};
 
-
-		struct RequestResource
-		{
-			/// <summary>事件类型</summary>
-			std::string  EventType;
-			/// <summary>节点地址编码</summary>
-			std::string  Code;
-			/// <summary>期望返回的起始记录数</summary>
-			std::string  FromIndex;
-			/// <summary>期望返回的结束记录数</summary>
-			std::string  ToIndex;
-		};
-
-		typedef struct RequestHistoryAlarm
-		{
-			/// <summary>事件类型</summary>
-			std::string  EventType;
-			/// <summary>查询告警地址编码</summary>
-			std::string  Code;
-			/// <summary>用户地址编码</summary>
-			std::string  UserCode;
-			/// <summary>告警类型</summary>
-			std::string  Type;
-			/// <summary>开始时间，格式如：1990-01-01T00:00:00Z</summary>
-			std::string  BeginTime;
-			/// <summary>结束时间，格式如：1990-01-01T00:00:00Z</summary>
-			std::string  EndTime;
-			/// <summary>告警级别</summary>
-			std::string  Level;
-			/// <summary>期望返回的起始记录数</summary>
-			std::string  FromIndex;
-			/// <summary>期望返回的结束记录数</summary>
-			std::string  ToIndex;
-		}RequestHistoryVideo;
-	
 		/// <summary>
 		/// 资源上报Head
 		/// </summary>

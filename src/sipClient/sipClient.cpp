@@ -332,33 +332,8 @@ bool vsnc::sip::SIPClient::Message(const std::string context) noexcept
 	return true;
 }
 
-bool vsnc::sip::SIPClient::Message(const RequestResource& request) noexcept
-{
-	// 创建一个XML
-	TiXmlDocument* tinyXmlDoc = new TiXmlDocument();
-	// 头部信息 xml的声明(三个属性：版本，编码格式，保留空串即可) 
-	TiXmlDeclaration* tinyXmlDeclare = new TiXmlDeclaration("1.0", "utf-8", "");	// 声明头部格式
-	// 根节点
-	// 创建时需要指定根节点的名称
-	TiXmlElement* root = new TiXmlElement("SIP_XML");
-	root->SetAttribute("EventType", request.EventType.c_str());
-	tinyXmlDoc->LinkEndChild(root);		// 把根节点插入到文档类中
-	// 子节点
-	TiXmlElement* item = new TiXmlElement("Item");
-	item->SetAttribute("Code", request.Code.c_str());
-	item->SetAttribute("FromIndex", request.FromIndex.c_str());
-	item->SetAttribute("ToIndex", request.ToIndex.c_str());
-	root->LinkEndChild(item);
-	TiXmlPrinter printer;
-	tinyXmlDoc->Accept(&printer);
-	std::cout << printer.CStr() << std::endl;
-	return Message(printer.CStr());
-}
 
-bool vsnc::sip::SIPClient::Message(const RequestHistoryAlarm& request) noexcept
-{
-	return false;
-}
+
 
 bool vsnc::sip::SIPClient::Notify(const std::string context) noexcept
 {
@@ -554,6 +529,7 @@ void vsnc::sip::SIPClient::serverHander()
 			std::cout << "MESSAGE received" << std::endl;
 			osip_body_t* body;
 			osip_message_get_body(je->response, 0, &body);
+			if (body == nullptr) break;
 			std::cout << "I get the msg is : " << body->body << std::endl;
 			// XML操作
 			TiXmlDocument* pDocument = new TiXmlDocument();
@@ -635,6 +611,8 @@ void vsnc::sip::SIPClient::serverHander()
 		}
 		case EXOSIP_SUBSCRIPTION_ANSWERED:
 		{
+			je;
+
 			std::cout << "SUBSCRIPTION received" << std::endl;
 			break;//消息应答
 		}
@@ -648,7 +626,13 @@ void vsnc::sip::SIPClient::serverHander()
 			std::cout << "MESSAGE Failed" << std::endl;
 			break;
 		}
+		case EXOSIP_SUBSCRIPTION_NOTIFY:
+		{
+			std::cout << "SUBSCRIPTION_NOTIFY received" << std::endl;
+			break;
+		}
 		default://收到其他应答
+
 
 			std::cout << "other response" << std::endl;
 			break;

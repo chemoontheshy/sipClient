@@ -15,6 +15,7 @@
     <ClCompile Include="..\..\src\sipClient\xml\tinyxmlparser.cpp">
       <Filter>xml</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\sipClient\composeRequest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\sipClient\sipClient.h" />
@@ -25,6 +26,7 @@
     <ClInclude Include="..\..\src\sipClient\xml\tinyxml.h">
       <Filter>xml</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\sipClient\composeRequest.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="xml">
