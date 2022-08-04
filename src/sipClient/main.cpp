@@ -191,11 +191,33 @@ a=recvonly\r\n";
             //此刻的Code无意义，可不要
             requestParam.Code = "100110000003010002";
             RequestAlarmParam alarmParam1;
-            alarmParam1.Code = "100110000003010001";
+            alarmParam1.Code = "100110000003010003";
             alarmParam1.Type = "255";
             RequestAlarmParam alarmParam2;
             alarmParam2.Code = "100110000003010002";
             alarmParam2.Type = "255";
+            requestParam.lstAlarmParam.push_back(alarmParam1);
+            requestParam.lstAlarmParam.push_back(alarmParam2);
+            request.SetParams(&requestParam, BInterfaceAction::B_SUBSRIBE_ALARM);
+            request.GetString(strXml);
+            std::cout << strXml << std::endl;
+            SubscriptionParam subParam{ strXml ,"alarm",3600 };
+            sipClient.Subscription(subParam);
+            break;
+        }
+        case 'k':
+        {
+            std::cout << "the method : SUBSCRIBE" << std::endl;
+            RequestSubAlarmParam requestParam;
+            requestParam.EventType = "Subscribe_Status";
+            //此刻的Code无意义，可不要
+            requestParam.Code = "100110000003010002";
+            RequestAlarmParam alarmParam1;
+            alarmParam1.Code = "100110000003010003";
+            alarmParam1.Type = "-1";
+            RequestAlarmParam alarmParam2;
+            alarmParam2.Code = "100110000003010000";
+            alarmParam2.Type = "-1";
             requestParam.lstAlarmParam.push_back(alarmParam1);
             requestParam.lstAlarmParam.push_back(alarmParam2);
             request.SetParams(&requestParam, BInterfaceAction::B_SUBSRIBE_ALARM);

@@ -98,6 +98,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)..\3rdparty\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Dnsapi.lib;Ws2_32.lib;eXosip2.lib;libcares.lib;osip2.lib;osipparser2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
