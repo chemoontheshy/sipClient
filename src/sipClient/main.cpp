@@ -67,7 +67,7 @@ int main()
             // 历史告警查询
             RequestHistoryParam requestParam;
             requestParam.EventType = "Request_History_Alarm";
-            requestParam.Code = "100110000003010002";
+            requestParam.Code = "100110000003010001";
             requestParam.UserCode = "100000000000000001";
             requestParam.Type = "0";
             requestParam.BeginTime = "2019-07-22T00:00:00Z";

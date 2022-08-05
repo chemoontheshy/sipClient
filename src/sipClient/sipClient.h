@@ -1,6 +1,8 @@
 #ifndef __VSNC_SIP_CLIENT_H_
 #define __VSNC_SIP_CLIENT_H_
 #include "parserResponse.h"
+#include <thread>
+#include <mutex>
 
 struct eXosip_t;
 
@@ -89,6 +91,17 @@ namespace vsnc
 			/// </summary>
 			void StartWork();
 
+			/// <summary>
+			/// 获取缓存区列表的事件，如果有则返回事件，如果没有返回NO_CALL_NOW
+			/// </summary>
+			/// <returns>如果有则返回事件，如果没有返回NO_CALL_NOW</returns>
+			Call getCall();
+
+			ResponsePushResourceParam getResponsePushResourceParam() { return m_pPushResource; }
+			ResponseResponseResourceParam getResponseResponseResourceParam() { return m_pResponseResource; }
+			ResponseHistoryAlarmParam getResponseHistoryAlarmParam() { return m_pHistoryAlarm; }
+			ResponseHistoryVideoParam getResponseHistoryVideoParam() { return m_pHistoryVideo; }
+
 		protected:
 			/// <summary>
 			/// 接收线程句柄
@@ -126,8 +139,12 @@ namespace vsnc
 			ResponseHistoryAlarmParam m_pHistoryAlarm;
 			/// <summary>录像文件的数据</summary>
 			ResponseHistoryVideoParam m_pHistoryVideo;
-
-			std::unique_ptr<Response> m_pResponse;
+			/// <summary>回复解析</summary>
+			Response*                 m_pResponse;
+			/// <summary>回复事件</summary>
+			std::list<Call>           m_lstCall;
+			/// <summary>线程锁</summary>
+			std::mutex                m_pMutex;
 		};
 	}
 }

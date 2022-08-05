@@ -390,11 +390,15 @@ void vsnc::sip::SIPClient::serverHander()
 		{
 		case EXOSIP_REGISTRATION_SUCCESS:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::REGISTRATION_SUCCESS);
 			std::cout << "success: status_code" << je->request->status_code << std::endl;
 			break;//注册成功
 		}
 		case EXOSIP_REGISTRATION_FAILURE:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::REGISTRATION_FAILURE);
 			std::cout << "fail: status_code" << je->response->status_code << std::endl;
 			break;//注册失败
 		}
@@ -403,6 +407,8 @@ void vsnc::sip::SIPClient::serverHander()
 			//消息
 			if (MSG_IS_MESSAGE(je->request))
 			{
+				std::lock_guard<std::mutex> lock(m_pMutex);
+				m_lstCall.push_back(Call::MSG_IS_MESSAGE);
 				// 打印接收到信息
 				{
 					osip_body_t* body;
@@ -416,6 +422,8 @@ void vsnc::sip::SIPClient::serverHander()
 			}
 			else if (MSG_IS_NOTIFY(je->request))
 			{
+				std::lock_guard<std::mutex> lock(m_pMutex);
+				m_lstCall.push_back(Call::MSG_IS_NOTIFY);
 				std::cout << "NOTIFY" << std::endl;
 				// 打印接收到信息
 				{
@@ -433,6 +441,8 @@ void vsnc::sip::SIPClient::serverHander()
 			}
 			else if (MSG_IS_REGISTER(je->request))
 			{
+				std::lock_guard<std::mutex> lock(m_pMutex);
+				m_lstCall.push_back(Call::MSG_IS_REGISTER);
 				std::cout << "register" << std::endl;
 				//返回注册信息
 				//OnRegister(excontext, pSipEvent);
@@ -445,23 +455,29 @@ void vsnc::sip::SIPClient::serverHander()
 		
 		case EXOSIP_CALL_RINGING:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::CALL_RINGING);
 			std::cout << "ringing" << std::endl;
 			break;
 		}
 		case EXOSIP_CALL_PROCEEDING:
 		{
-
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::CALL_PROCEEDING);
 			std::cout << "PROCEEDING" << std::endl;
 			break;
 		}
 		case EXOSIP_CALL_MESSAGE_ANSWERED:
 		{
-
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::CALL_MESSAGE_ANSWERED);
 			std::cout << "CALL_MESSAGE_ANSWERED" << std::endl;
 			break;
 		}
 		case EXOSIP_CALL_ANSWERED:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::CALL_ANSWERED);
 			eXosip_lock(m_pExcontext);
 			osip_message_t* ack;
 			std::cout << "ok!connected!" << std::endl;
@@ -476,16 +492,29 @@ void vsnc::sip::SIPClient::serverHander()
 		}
 		case EXOSIP_CALL_CLOSED:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::CALL_CLOSED);
 			std::cout << "the other sid close" << std::endl;
 			break;
 		}
 		case EXOSIP_CALL_ACK://收到ACK received
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::CALL_ACK);
 			std::cout << "ACK received" << std::endl;
+			break;
+		}
+		case EXOSIP_CALL_RELEASED:
+		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::CALL_RELEASED);
+			std::cout << "EXOSIP_CALL_RELEASED" << std::endl;
 			break;
 		}
 		case EXOSIP_MESSAGE_ANSWERED:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::MESSAGE_ANSWERED);
 			std::cout << "MESSAGE received" << std::endl;
 			osip_body_t* body;
 			osip_message_get_body(je->response, 0, &body);
@@ -509,29 +538,29 @@ void vsnc::sip::SIPClient::serverHander()
 		}
 		case EXOSIP_SUBSCRIPTION_ANSWERED:
 		{
-			je;
-
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::SUBSCRIPTION_ANSWERED);
 			std::cout << "SUBSCRIPTION received" << std::endl;
 			break;//消息应答
 		}
-		case EXOSIP_CALL_RELEASED:
-		{
-			std::cout << "EXOSIP_CALL_RELEASED" << std::endl;
-			break;
-		}
+		
 		case EXOSIP_MESSAGE_REQUESTFAILURE:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::REGISTRATION_FAILURE);
 			std::cout << "MESSAGE Failed" << std::endl;
 			break;
 		}
 		case EXOSIP_SUBSCRIPTION_NOTIFY:
 		{
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::SUBSCRIPTION_NOTIFY);
 			std::cout << "SUBSCRIPTION_NOTIFY received" << std::endl;
 			break;
 		}
 		default://收到其他应答
-
-
+			std::lock_guard<std::mutex> lock(m_pMutex);
+			m_lstCall.push_back(Call::OTHER_RESPONSE);
 			std::cout << "other response" << std::endl;
 			break;
 		}
@@ -548,4 +577,16 @@ void vsnc::sip::SIPClient::StartWork()
 {
 	std::thread workThread(threadFun, this);
 	workThread.detach();
+}
+
+vsnc::sip::Call vsnc::sip::SIPClient::getCall()
+{
+	std::lock_guard<std::mutex> lock(m_pMutex);
+	if (!m_lstCall.empty())
+	{
+		auto call = m_lstCall.front();
+		m_lstCall.pop_front();
+		return call;
+	}
+	return Call::NO_CALL_NOW;
 }
