@@ -91,18 +91,16 @@ namespace vsnc
 			/// </summary>
 			void StartWork();
 
-			/// <summary>
-			/// 获取缓存区列表的事件，如果有则返回事件，如果没有返回NO_CALL_NOW
-			/// </summary>
-			/// <returns>如果有则返回事件，如果没有返回NO_CALL_NOW</returns>
-			Call getCall();
+			bool GetCall(Call& call) noexcept;
+
+			bool GetCallReply(CallReply& callRely) noexcept;
 
 			ResponsePushResourceParam getResponsePushResourceParam() { return m_pPushResource; }
 			ResponseResponseResourceParam getResponseResponseResourceParam() { return m_pResponseResource; }
 			ResponseHistoryAlarmParam getResponseHistoryAlarmParam() { return m_pHistoryAlarm; }
 			ResponseHistoryVideoParam getResponseHistoryVideoParam() { return m_pHistoryVideo; }
-
 		protected:
+
 			/// <summary>
 			/// 接收线程句柄
 			/// </summary>
@@ -141,8 +139,10 @@ namespace vsnc
 			ResponseHistoryVideoParam m_pHistoryVideo;
 			/// <summary>回复解析</summary>
 			Response*                 m_pResponse;
-			/// <summary>回复事件</summary>
+			/// <summary>接收事件</summary>
 			std::list<Call>           m_lstCall;
+			/// <summary>回复事件</summary>
+			std::list<CallReply>      m_lstCallReply;
 			/// <summary>线程锁</summary>
 			std::mutex                m_pMutex;
 		};

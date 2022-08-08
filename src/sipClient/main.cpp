@@ -41,6 +41,7 @@ int main()
     // Éú³ÉXML
     vsnc::sip::Request request;
     std::string strXml;
+   
     while (flag)
     {
         std::cout << "Please input the commamd:" << std::endl;

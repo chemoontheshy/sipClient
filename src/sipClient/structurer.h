@@ -72,6 +72,13 @@ namespace vsnc
 			SUBSCRIPTION_NOTIFY,
 			OTHER_RESPONSE
 		};
+		enum class CallReply
+		{
+			//ªÿ∏¥
+			REPLY_ACK,
+			REPLY_200,
+			REPLY_401
+		};
 
 		/// <summary>
 		/// UAC√¸¡Ó

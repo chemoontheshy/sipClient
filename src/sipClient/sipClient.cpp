@@ -17,7 +17,7 @@ namespace vsnc
 		/// </summary>
 		/// <param name="excontext">sip句柄</param>
 		/// <param name="osipEvent">事件句柄</param>
-		static void __on_register(eXosip_t* excontext, eXosip_event_t* osipEvent , const SIPAuthInfo& authInfo);
+		static size_t __on_register(eXosip_t* excontext, eXosip_event_t* osipEvent , const SIPAuthInfo& authInfo);
 		
 		/// <summary>
 		/// 解析注册信息
@@ -42,7 +42,7 @@ namespace vsnc
 	}
 }
 
-void vsnc::sip::__on_register(eXosip_t* excontext, eXosip_event_t* osipEvent ,const SIPAuthInfo& authInfo)
+size_t vsnc::sip::__on_register(eXosip_t* excontext, eXosip_event_t* osipEvent ,const SIPAuthInfo& authInfo)
 {
 	SIPRegisterInfo regInfo;
 	// 解析注册报文
@@ -53,6 +53,7 @@ void vsnc::sip::__on_register(eXosip_t* excontext, eXosip_event_t* osipEvent ,co
 	__print_register_info(regInfo);
 	// 回复响应
 	__send_register_answer(excontext, regInfo);
+	return (regInfo.IsAuthNull) ? 401 : 200;
 }
 
 void vsnc::sip::__parser_register_info(osip_message_t* request, const int reqId, SIPRegisterInfo& regInfo)
@@ -446,7 +447,7 @@ void vsnc::sip::SIPClient::serverHander()
 				std::cout << "register" << std::endl;
 				//返回注册信息
 				//OnRegister(excontext, pSipEvent);
-				__on_register(m_pExcontext, je,m_pSIPAuth);
+				auto statusCode  = __on_register(m_pExcontext, je,m_pSIPAuth);
 				std::cout << "register ok" << std::endl;
 			}
 			// 消息
@@ -579,14 +580,26 @@ void vsnc::sip::SIPClient::StartWork()
 	workThread.detach();
 }
 
-vsnc::sip::Call vsnc::sip::SIPClient::getCall()
+bool vsnc::sip::SIPClient::GetCall(Call& call) noexcept
 {
 	std::lock_guard<std::mutex> lock(m_pMutex);
 	if (!m_lstCall.empty())
 	{
-		auto call = m_lstCall.front();
+		call = m_lstCall.front();
 		m_lstCall.pop_front();
-		return call;
+		return true;
 	}
-	return Call::NO_CALL_NOW;
+	return false;
+}
+
+bool vsnc::sip::SIPClient::GetCallReply(CallReply& callRely) noexcept
+{
+	std::lock_guard<std::mutex> lock(m_pMutex);
+	if (!m_lstCallReply.empty())
+	{
+		callRely = m_lstCallReply.front();
+		m_lstCall.pop_front();
+		return true;
+	}
+	return false;
 }
