@@ -74,6 +74,7 @@ namespace vsnc
 		};
 		enum class CallReply
 		{
+			REPLY_NONE,
 			//»Ø¸´
 			REPLY_ACK,
 			REPLY_200,

@@ -91,13 +91,42 @@ namespace vsnc
 			/// </summary>
 			void StartWork();
 
+			/// <summary>
+			/// 获取接收到事件
+			/// </summary>
+			/// <param name="call">事件枚举</param>
+			/// <returns>成功返回true,错误返回false</returns>
 			bool GetCall(Call& call) noexcept;
 
+			/// <summary>
+			/// 回复事件
+			/// </summary>
+			/// <param name="callRely">回复事件枚举</param>
+			/// <returns>成功返回true,错误返回false</returns>
 			bool GetCallReply(CallReply& callRely) noexcept;
 
+			/// <summary>
+			/// 上传资源结构体
+			/// </summary>
+			/// <returns>上传资源结构体</returns>
 			ResponsePushResourceParam getResponsePushResourceParam() { return m_pPushResource; }
+			
+			/// <summary>
+			/// 请求资源结构体
+			/// </summary>
+			/// <returns>请求资源结构体</returns>
 			ResponseResponseResourceParam getResponseResponseResourceParam() { return m_pResponseResource; }
+			
+			/// <summary>
+			/// 历史告警结构体
+			/// </summary>
+			/// <returns>历史告警结构体</returns>
 			ResponseHistoryAlarmParam getResponseHistoryAlarmParam() { return m_pHistoryAlarm; }
+			
+			/// <summary>
+			/// 历史录像结构体
+			/// </summary>
+			/// <returns>历史录像结构体</returns>
 			ResponseHistoryVideoParam getResponseHistoryVideoParam() { return m_pHistoryVideo; }
 		protected:
 

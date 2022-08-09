@@ -9,6 +9,73 @@
 #include "composeRequest.h"
 
 using namespace vsnc::sip;
+bool TestApi(SIPClient* sip,const BInterfaceAction action, RequestParam* requestParam, ResponseParam* responseParam)
+{
+    switch (action)
+    {
+    case vsnc::sip::BInterfaceAction::B_REGISTER:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_PUSH_RESOURCE:
+    {
+        
+        auto temp = reinterpret_cast<ResponsePushResourceParam*>(responseParam);
+        auto a = sip->getResponsePushResourceParam();
+        temp = &a;
+        return true;
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_RESPONSE_RESOURCE:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_HISTORY_ALARM:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_HISTORY_VIDEO:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_PLAY_VIDEO:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_TALK_AUDIO:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_CONTROL_CAMERA:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_PLAY_BACK_VIDEO:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_SUBSRIBE_ALARM:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_CAMERA_SNAP:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_UPLOAD_SNAP:
+    {
+        break;
+    }
+    case vsnc::sip::BInterfaceAction::B_SNAPSHOT_NOTIFY:
+    {
+        break;
+    }
+    default:
+        break;
+    }
+    return false;
+}
+
 
 int main()
 {
@@ -41,7 +108,7 @@ int main()
     // Éú³ÉXML
     vsnc::sip::Request request;
     std::string strXml;
-   
+ 
     while (flag)
     {
         std::cout << "Please input the commamd:" << std::endl;
@@ -284,6 +351,26 @@ Range: ntp=10-28\r\n";
             request.GetString(strXml);
             std::cout << strXml << std::endl;
             sipClient.Notify(strXml);
+        }
+        case 't':
+        {
+            
+            ResponsePushResourceParam* pParam;
+            if (TestApi(&sipClient,BInterfaceAction::B_PUSH_RESOURCE, nullptr, &pParam))
+            {
+                std::cout << pParam->lstResource.size();
+                if (!pParam->lstResource.empty())
+                {
+                    std::cout << "test95";
+                    for (const auto& resource : pParam->lstResource)
+                    {
+                        std::cout << __LINE__;
+                        //qDebug() << QString::fromStdString(resource.Name);
+                        //ui->boxPushResource->addItem(QString::fromStdString(resource.Name));
+                    }
+                }
+
+            }
         }
         default:
             break;

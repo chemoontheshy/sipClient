@@ -420,6 +420,7 @@ void vsnc::sip::SIPClient::serverHander()
 				osip_message_t* answer;
 				eXosip_message_build_answer(m_pExcontext, je->tid, 200, &answer);
 				eXosip_message_send_answer(m_pExcontext, je->tid, 200, answer);
+				m_lstCallReply.push_back(CallReply::REPLY_200);
 			}
 			else if (MSG_IS_NOTIFY(je->request))
 			{
@@ -439,6 +440,7 @@ void vsnc::sip::SIPClient::serverHander()
 				osip_message_t* notify = nullptr;
 				eXosip_message_build_answer(m_pExcontext, je->tid, 200, &notify);
 				eXosip_message_send_answer(m_pExcontext, je->tid, 200, notify);
+				m_lstCallReply.push_back(CallReply::REPLY_200);
 			}
 			else if (MSG_IS_REGISTER(je->request))
 			{
@@ -449,6 +451,8 @@ void vsnc::sip::SIPClient::serverHander()
 				//OnRegister(excontext, pSipEvent);
 				auto statusCode  = __on_register(m_pExcontext, je,m_pSIPAuth);
 				std::cout << "register ok" << std::endl;
+				if (statusCode == 200) m_lstCallReply.push_back(CallReply::REPLY_200);
+				if (statusCode == 401) m_lstCallReply.push_back(CallReply::REPLY_401);
 			}
 			// ÏûÏ¢
 			break;
@@ -489,6 +493,7 @@ void vsnc::sip::SIPClient::serverHander()
 			eXosip_call_build_ack(m_pExcontext, je->did, &ack);
 			eXosip_call_send_ack(m_pExcontext, je->did, ack);
 			eXosip_unlock(m_pExcontext);
+			m_lstCallReply.push_back(CallReply::REPLY_ACK);
 			break;
 		}
 		case EXOSIP_CALL_CLOSED:
