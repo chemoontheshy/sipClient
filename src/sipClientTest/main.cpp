@@ -6,12 +6,26 @@
 
 #include <iostream>
 #include <string>
-
-const char* srcCall = "sip:client@127.0.0.1:5061";
+#include <random>
+const char* srcCall = "sip:client@127.0.0.1:5060";
 const char* dstCall = "sip:server@127.0.0.1";
+
+int get_rand()
+{
+    int m_ssrc = 0;
+    uint64_t rand1 = time(NULL);
+    uint64_t rand2 = time(NULL);
+
+    m_ssrc += (rand1 & 0xFFFF0000);
+    m_ssrc += (rand2 & 0x0000FFFF);
+
+    return m_ssrc;
+}
 
 int main()
 {
+
+    std::cout << get_rand() << std::endl;
     auto excontext = eXosip_malloc();
     auto ret = eXosip_init(excontext);
 	if (eXosip_init(excontext) < 0)

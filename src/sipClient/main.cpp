@@ -79,10 +79,10 @@ bool TestApi(SIPClient* sip,const BInterfaceAction action, RequestParam* request
 
 int main()
 {
-    std::cout << "r REGISTER        向服务器注册"     << std::endl;
-    std::cout << "u UPDATE          更新注册"         << std::endl;
-    std::cout << "c CANCEL REGISTER 取消注册"         << std::endl;
-    std::cout << "i INVITE          邀请,发起呼叫请求" << std::endl;
+    std::cout << "3 RESPONSE_RESOURCE      资源获取"       << std::endl;
+    std::cout << "4 HISTORY_ALARM          历史告警"       << std::endl;
+    std::cout << "5 B_HISTORY_VIDEO        录像检索"       << std::endl;
+    std::cout << "6 INVITE          邀请,发起呼叫请求" << std::endl;
     std::cout << "h BYE             结束会话"         << std::endl;
     std::cout << "q EXIT            退出程序"         << std::endl;
     std::cout << "f INFO            消息"             << std::endl;
@@ -93,14 +93,14 @@ int main()
     bool flag = true;
     SIPUACParam UACParam;
     // 用户端（即平台端
-    UACParam.From.SetSIPHeader("100000000000000001", "172.168.7.234", 5062, 1800);
+    UACParam.From.SetSIPHeader("100000000000000002", "172.168.8.41", 5064, 1800);
     // 摄像头编号
-    UACParam.To.SetSIPHeader("100110000003010002", "172.168.7.234", 5060, 1800);
+    UACParam.To.SetSIPHeader("100110000003010001", "172.168.8.41", 5060, 1800);
     UACParam.SIPAuth.Uri = UACParam.From.GetSipHeader();
     UACParam.SIPAuth.Nonce = NONCE;
     UACParam.SIPAuth.Username = "admin";
     UACParam.SIPAuth.Response = "hs123456";
-    UACParam.SIPAuth.DigestRealm = "172.168.7.234";
+    UACParam.SIPAuth.DigestRealm = "172.168.8.41";
     UACParam.SIPAuth.Algorithm = ALGORITHIMH;
     SIPClient sipClient(UACParam);
     char command;
@@ -172,10 +172,10 @@ int main()
         {
             std::cout << "invite" << std::endl;
             std::string sdp = "v=0\r\n\
-o=- 0 0 IN IP4 172.168.7.234\r\n\
+o=- 0 0 IN IP4 172.168.8.41\r\n\
 s=Play\r\n\
-c=IN IP4 172.168.7.234\r\n\
-m=video 8000 RTP/AVP 100\r\n\
+c=IN IP4 172.168.8.41\r\n\
+m=video 20002 RTP/AVP 100\r\n\
 y=123456\r\n\
 artmap:100 H264/9000\r\n\
 afmtp:100 CIF=1;4CIF=1;F=1;K=1\r\n\
@@ -183,6 +183,28 @@ a=rate:sub\r\n\
 a=recvonly\r\n";
             //增加sdp
             sipClient.Invite(sdp);
+            break;
+        }
+        case '7':
+        {
+            std::cout << "invite" << std::endl;
+            std::string sdp = "v=0\r\n\
+o=- 0 0 IN IP4 172.168.8.41\r\n\
+s=Play\r\n\
+y=654321\r\n\
+c=IN IP4 172.168.8.41\r\n\
+m=video 12002 RTP/AVP 100\r\n\
+artmap:100 H264/9000\r\n\
+afmtp:100 CIF=1;4CIF=1;F=1;K=1\r\n\
+a=rate:sub\r\n\
+a=recvonly\r\n"; 
+            //增加sdp
+            sipClient.Invite(sdp);
+            break;
+        }
+        case 'b':
+        {
+            sipClient.Bye();
             break;
         }
         case 'q':
@@ -355,22 +377,23 @@ Range: ntp=10-28\r\n";
         case 't':
         {
             
-            ResponsePushResourceParam* pParam;
-            if (TestApi(&sipClient,BInterfaceAction::B_PUSH_RESOURCE, nullptr, &pParam))
-            {
-                std::cout << pParam->lstResource.size();
-                if (!pParam->lstResource.empty())
-                {
-                    std::cout << "test95";
-                    for (const auto& resource : pParam->lstResource)
-                    {
-                        std::cout << __LINE__;
-                        //qDebug() << QString::fromStdString(resource.Name);
-                        //ui->boxPushResource->addItem(QString::fromStdString(resource.Name));
-                    }
-                }
+            //ResponsePushResourceParam pParam;
+            //if (TestApi(&sipClient,BInterfaceAction::B_PUSH_RESOURCE, nullptr, &pParam))
+            //{
+            //    std::cout << pParam->lstResource.size();
+            //    if (!pParam->lstResource.empty())
+            //    {
+            //        std::cout << "test95";
+            //        for (const auto& resource : pParam->lstResource)
+            //        {
+            //            std::cout << __LINE__;
+            //            //qDebug() << QString::fromStdString(resource.Name);
+            //            //ui->boxPushResource->addItem(QString::fromStdString(resource.Name));
+            //        }
+            //    }
 
-            }
+            //}
+            //sd
         }
         default:
             break;
