@@ -299,7 +299,22 @@ bool vsnc::sip::SIPClient::Invite(const std::string sdp) noexcept
 	eXosip_lock(m_pExcontext);
 	eXosip_call_send_initial_invite(m_pExcontext, invite);
 	eXosip_unlock(m_pExcontext);
-	return true;
+    return true;
+}
+
+bool vsnc::sip::SIPClient::InviteV2(const std::string &sdp, const vsnc::sip::SIPHeaderParam &param) noexcept
+{
+    osip_message_t* invite;
+    eXosip_call_build_initial_invite(m_pExcontext,
+        &invite, m_pTo.GetSipHeaderV2(param).c_str(),
+        m_pFrom.GetSipHeader().c_str(),
+        nullptr, "This is a call for conversation");
+    osip_message_set_body(invite, sdp.c_str(), sdp.size());
+    osip_message_set_content_type(invite, "application/sdp");
+    eXosip_lock(m_pExcontext);
+    eXosip_call_send_initial_invite(m_pExcontext, invite);
+    eXosip_unlock(m_pExcontext);
+    return true;
 }
 
 bool vsnc::sip::SIPClient::Bye() noexcept
@@ -331,6 +346,7 @@ bool vsnc::sip::SIPClient::Message(const std::string context) noexcept
 	osip_message_set_body(message, context.c_str(), context.length());
 	osip_message_set_content_type(message, "application/xml");
 	eXosip_message_send_request(m_pExcontext, message);
+
 	return true;
 }
 
@@ -520,7 +536,7 @@ void vsnc::sip::SIPClient::serverHander()
 		case EXOSIP_MESSAGE_ANSWERED:
 		{
 			std::lock_guard<std::mutex> lock(m_pMutex);
-			m_lstCall.push_back(Call::MESSAGE_ANSWERED);
+            //m_lstCall.push_back(Call::MESSAGE_ANSWERED);
 			std::cout << "MESSAGE received" << std::endl;
 			osip_body_t* body;
 			osip_message_get_body(je->response, 0, &body);
@@ -530,14 +546,17 @@ void vsnc::sip::SIPClient::serverHander()
 
 			if (temp.find("Response_Resource") != std::string::npos)
 			{
+                m_lstCall.push_back(Call::RESPONSE_RESOURCE);
 				m_pResponse->Parser(temp, BInterfaceAction::B_RESPONSE_RESOURCE, m_pResponseResource);
 			}
 			if (temp.find("Response_History_Alarm") != std::string::npos)
 			{
+                m_lstCall.push_back(Call::RESPONSE_HISTORY_ALARM);
 				m_pResponse->Parser(temp, BInterfaceAction::B_HISTORY_ALARM, m_pHistoryAlarm);
 			}
 			if (temp.find("Response_History_Video") != std::string::npos)
 			{
+                m_lstCall.push_back(Call::RESPONSE_HISTORY_VIDEO);
 				m_pResponse->Parser(temp, BInterfaceAction::B_HISTORY_VIDEO, m_pHistoryVideo);
 			}
 			break;//ÏûÏ¢Ó¦´ð
@@ -603,7 +622,7 @@ bool vsnc::sip::SIPClient::GetCallReply(CallReply& callRely) noexcept
 	if (!m_lstCallReply.empty())
 	{
 		callRely = m_lstCallReply.front();
-		m_lstCall.pop_front();
+        m_lstCallReply.pop_front();
 		return true;
 	}
 	return false;

@@ -82,7 +82,9 @@ int main()
     std::cout << "3 RESPONSE_RESOURCE      资源获取"       << std::endl;
     std::cout << "4 HISTORY_ALARM          历史告警"       << std::endl;
     std::cout << "5 B_HISTORY_VIDEO        录像检索"       << std::endl;
-    std::cout << "6 INVITE          邀请,发起呼叫请求" << std::endl;
+    std::cout << "6 INVITE          邀请,发起呼叫请求,实时流海康" << std::endl;
+    std::cout << "7 INVITE          邀请,发起呼叫请求,实时流大华" << std::endl;
+    std::cout << "8 INVITE          邀请,发起呼叫请求,录像流海康" << std::endl;
     std::cout << "h BYE             结束会话"         << std::endl;
     std::cout << "q EXIT            退出程序"         << std::endl;
     std::cout << "f INFO            消息"             << std::endl;
@@ -93,12 +95,13 @@ int main()
     bool flag = true;
     SIPUACParam UACParam;
     // 用户端（即平台端
-    UACParam.From.SetSIPHeader("100000000000000002", "172.168.8.41", 5064, 1800);
-    // 摄像头编号
-    UACParam.To.SetSIPHeader("100110000003010001", "172.168.8.41", 5060, 1800);
+    UACParam.From.SetSIPHeader("100110001001000000", "172.168.8.41", 8062, 1800);
+    //
+    UACParam.To.SetSIPHeader("100110001001000001", "172.168.8.41", 5060, 1800);
     UACParam.SIPAuth.Uri = UACParam.From.GetSipHeader();
     UACParam.SIPAuth.Nonce = NONCE;
     UACParam.SIPAuth.Username = "admin";
+    //UACParam.SIPAuth.Response = "admin888";
     UACParam.SIPAuth.Response = "hs123456";
     UACParam.SIPAuth.DigestRealm = "172.168.8.41";
     UACParam.SIPAuth.Algorithm = ALGORITHIMH;
@@ -122,7 +125,7 @@ int main()
             std::cout << "the method : MESSAGE" << std::endl;
             RequestResourceParam requestParam;
             requestParam.EventType = "Request_Resource";
-            requestParam.Code = "100110001001000000";
+            requestParam.Code = "100110001001000001";
             requestParam.FromIndex = "1";
             requestParam.ToIndex = "30";
             request.SetParams(&requestParam, BInterfaceAction::B_RESPONSE_RESOURCE);
@@ -154,11 +157,11 @@ int main()
             // 录像检索
             RequestHistoryParam requestParam;
             requestParam.EventType = "Request_History_Video";
-            requestParam.Code = "100110000003010002";
+            requestParam.Code = "100110000003010001";
             requestParam.UserCode = "100000000000000001";
             requestParam.Type = "1";
-            requestParam.BeginTime = "2019-07-22T00:00:00Z";
-            requestParam.EndTime = "2022-07-31T23:59:59Z";
+            requestParam.BeginTime = "2019-10-22T00:00:00Z";
+            requestParam.EndTime = "2022-11-21T23:59:59Z";
             requestParam.Level = "1";
             requestParam.FromIndex = "1";
             requestParam.ToIndex = "30";
@@ -170,19 +173,23 @@ int main()
         }
         case '6':
         {
+            SIPHeaderParam param;
+            param.AddrCode = "100110000003010001";
+            param.AddrIp = "172.168.8.41";
+            param.AddrPort = "8060";
             std::cout << "invite" << std::endl;
             std::string sdp = "v=0\r\n\
 o=- 0 0 IN IP4 172.168.8.41\r\n\
 s=Play\r\n\
 c=IN IP4 172.168.8.41\r\n\
-m=video 20002 RTP/AVP 100\r\n\
+m=video 4000 RTP/AVP 100\r\n\
 y=123456\r\n\
 artmap:100 H264/9000\r\n\
 afmtp:100 CIF=1;4CIF=1;F=1;K=1\r\n\
 a=rate:sub\r\n\
 a=recvonly\r\n";
             //增加sdp
-            sipClient.Invite(sdp);
+            sipClient.InviteV2(sdp, param);
             break;
         }
         case '7':
@@ -193,13 +200,37 @@ o=- 0 0 IN IP4 172.168.8.41\r\n\
 s=Play\r\n\
 y=654321\r\n\
 c=IN IP4 172.168.8.41\r\n\
-m=video 12002 RTP/AVP 100\r\n\
+m=video 4000 RTP/AVP 100\r\n\
 artmap:100 H264/9000\r\n\
 afmtp:100 CIF=1;4CIF=1;F=1;K=1\r\n\
-a=rate:sub\r\n\
+a=rate:main\r\n\
 a=recvonly\r\n"; 
             //增加sdp
             sipClient.Invite(sdp);
+            break;
+        }
+        case '8':
+        {
+            std::cout << "invite" << std::endl;
+            std::string sdp = "v=0\r\n\
+o=- 0 0 IN IP4 172.168.8.41\r\n\
+s=Playback\r\n\
+u=rtsp://172.168.8.41/Playback/20221120204119T20221121042724\r\n\
+y=654321\r\n\
+c=IN IP4 172.168.8.41\r\n\
+m=video 4000 RTP/AVP 110\r\n\
+artmap:110 H264/9000\r\n\
+afmtp:110 CIF=1;4CIF=1;F=1;K=1\r\n\
+a=rate:main\r\n\
+a=setup:passive\r\n\
+a=connection:new\r\n\
+a=recvonly\r\n";
+            //增加sdp
+            SIPHeaderParam param;
+            param.AddrCode = "100110000003010001";
+            param.AddrIp = "172.168.8.241";
+            param.AddrPort = "8000";
+            sipClient.InviteV2(sdp, param);
             break;
         }
         case 'b':

@@ -48,7 +48,9 @@ namespace vsnc
 			/// <summary>抓拍图片数据上传</summary>
 			B_UPLOAD_SNAP,
 			/// <summary>图像数据上报</summary>
-			B_SNAPSHOT_NOTIFY
+            B_SNAPSHOT_NOTIFY,
+            /// <summary>图像数据上报</summary>
+            B_PLAY_STOP
 		};
 
 		enum class Call
@@ -67,6 +69,11 @@ namespace vsnc
 			CALL_ACK,
 			CALL_RELEASED,
 			MESSAGE_ANSWERED,
+
+            RESPONSE_RESOURCE,
+            RESPONSE_HISTORY_ALARM,
+            RESPONSE_HISTORY_VIDEO,
+
 			SUBSCRIPTION_ANSWERED,
 			MESSAGE_REQUESTFAILURE,
 			SUBSCRIPTION_NOTIFY,
@@ -74,7 +81,7 @@ namespace vsnc
 		};
 		enum class CallReply
 		{
-			REPLY_NONE,
+            REPLY_NONE,
 			//回复
 			REPLY_ACK,
 			REPLY_200,
@@ -115,6 +122,15 @@ namespace vsnc
 			TCP
 		};
 
+        struct SIPHeaderParam
+        {
+            //编码
+            std::string AddrCode;
+            //IP
+            std::string AddrIp;
+            //端口
+            std::string AddrPort;
+        };
 		/// <summary>
 		/// SIPHeader
 		/// </summary>
@@ -154,6 +170,13 @@ namespace vsnc
 				stream << "<sip:" << m_sAddrCode << "@" << m_sAddrIp << ":" << m_sAddrPort<<">";
 				return stream.str();
 			}
+
+            std::string GetSipHeaderV2(const SIPHeaderParam& param) const noexcept
+            {
+                std::stringstream stream;
+                stream << "<sip:" << param.AddrCode << "@" << m_sAddrIp << ":" << m_sAddrPort << ">";
+                return stream.str();
+            }
 
 			std::string GetContact() const noexcept
 			{

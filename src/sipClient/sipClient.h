@@ -59,6 +59,14 @@ namespace vsnc
 			/// <returns>成功返回true，错误返回false</returns>
 			bool Invite(const std::string sdp) noexcept;
 
+
+            /// <summary>
+            /// 邀请会议
+            /// </summary>
+            /// <param name="sdp">sdp</param>
+            /// <returns>成功返回true，错误返回false</returns>
+            bool InviteV2(const std::string& sdp,const SIPHeaderParam& param) noexcept;
+
 			/// <summary>
 			/// 结束会议
 			/// </summary>

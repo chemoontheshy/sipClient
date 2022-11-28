@@ -16,6 +16,7 @@ namespace vsnc
 
 void Request::SetParams(RequestParam* request, const BInterfaceAction action) noexcept
 {
+    std::cout<<__LINE__<<"error"<<std::endl;
 	// 创建一个XML
 	TiXmlDocument* xmlDoc = new TiXmlDocument();
 	// 头部信息 xml的声明(三个属性：版本，编码格式，保留空串即可) 
@@ -35,6 +36,7 @@ void Request::SetParams(RequestParam* request, const BInterfaceAction action) no
 		root->SetAttribute("EventType", req->EventType.c_str());
 		// 参数
 		item->SetAttribute("Code", req->Code.c_str());
+
 		item->SetAttribute("FromIndex", req->FromIndex.c_str());
 		item->SetAttribute("ToIndex", req->ToIndex.c_str());
 		break;
@@ -142,6 +144,7 @@ void Request::SetParams(RequestParam* request, const BInterfaceAction action) no
 	TiXmlPrinter printer;
 	xmlDoc->Accept(&printer);
 	m_sXML = printer.CStr();
+    std::cout<<__LINE__<<"error"<<std::endl;
 }
 bool Request::GetString(std::string& str) noexcept
 {
