@@ -424,7 +424,6 @@ Range: ntp=10-28\r\n";
             //    }
 
             //}
-            //sd
         }
         default:
             break;
